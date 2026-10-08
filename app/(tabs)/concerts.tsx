@@ -36,7 +36,7 @@ export default function TabTwoScreen() {
             <View className="flex flex-row justify-between items-center mb-2">
               <Text className="text-lg font-bold text-white">{concert.name}</Text>
               <Pressable onPress={() => {
-                setFavorites(prev => prev.includes(concert.id) ? prev.filter(id => id !== concert.id) : [...prev, concert.id]);
+                setFavorites(favorites => favorites.includes(concert.id) ? favorites.filter(id => id !== concert.id) : [...favorites, concert.id]);
               }}>
                 <MaterialIcons name={favorites.includes(concert.id) ? "favorite" : "favorite-border"} size={22} color={"white"} />
               </Pressable>
