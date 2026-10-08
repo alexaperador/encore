@@ -3,3 +3,12 @@
 @import "tailwindcss/utilities.css";
  
 @import "nativewind/theme";
+
+@theme {
+  --color-background: #3E2C23;
+  --color-border: #6F4E37;
+  --color-active: #6F4E37;
+  --color-active-icon: #FFFFFF;
+  --color-inactive-icon: #C9A27E;
+  --color-shadow: #EDE0D4;
+}
