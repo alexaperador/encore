@@ -9,14 +9,6 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "plugins": [
-        [
-          "expo-widgets",
-          {
-            "enablePushNotifications": false
-          }
-        ]
-      ],
       "bundleIdentifier": "com.aaperadors.encore"
     },
     "android": {

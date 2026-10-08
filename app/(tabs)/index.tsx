@@ -1,5 +1,6 @@
 import ModalConcert from "@/components/ModalConcer";
 import { fetchConcerts, type Concert } from "@/lib/concerts";
+import { getFavoriteConcertIds, toggleFavoriteConcert } from "@/lib/favorites";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 import {
@@ -23,20 +24,28 @@ function formatConcertDate(date: string | null) {
   }).format(new Date(`${date}T00:00:00`));
 }
 
-function LikeButton() {
-  const [liked, setLiked] = useState(false);
-
+function LikeButton({
+  concertId,
+  isLiked,
+  onToggle,
+}: {
+  concertId: string;
+  isLiked: boolean;
+  onToggle: (concertId: string) => void;
+}) {
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={liked ? "Quitar de favoritos" : "Añadir a favoritos"}
-      onPress={() => setLiked((v) => !v)}
+      accessibilityLabel={
+        isLiked ? "Quitar de favoritos" : "Añadir a favoritos"
+      }
+      onPress={() => onToggle(concertId)}
       hitSlop={8}
     >
       <MaterialIcons
-        name={liked ? "favorite" : "favorite-border"}
+        name={isLiked ? "favorite" : "favorite-border"}
         size={20}
-        color={liked ? "#C65D5D" : "#A3ABB5"}
+        color={isLiked ? "#C65D5D" : "#A3ABB5"}
       />
     </Pressable>
   );
@@ -50,8 +59,18 @@ export default function Explore() {
   const [concerts, setConcerts] = useState<Concert[]>([]);
   const [selectedConcert, setSelectedConcert] = useState<Concert | null>(null);
   const [searchText, setSearchText] = useState("");
+  const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    getFavoriteConcertIds().then(setFavoriteIds);
+  }, []);
+
+  const handleToggleFavorite = async (concertId: string) => {
+    const nextFavoriteIds = await toggleFavoriteConcert(concertId);
+    setFavoriteIds(nextFavoriteIds);
+  };
 
   useEffect(() => {
     let isCancelled = false;
@@ -206,7 +225,11 @@ export default function Explore() {
                 >
                   {item.title}
                 </Text>
-                <LikeButton />
+                <LikeButton
+                  concertId={item.id}
+                  isLiked={favoriteIds.includes(item.id)}
+                  onToggle={handleToggleFavorite}
+                />
               </View>
               {item.venue || item.city ? (
                 <Text className="text-sm text-shadow" numberOfLines={1}>
