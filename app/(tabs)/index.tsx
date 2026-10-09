@@ -1,4 +1,5 @@
-import ModalConcert from "@/components/ModalConcer";
+import ModalConcert from "@/components/ModalConcert";
+import AddConcert from "@/components/AddConcert";
 import { fetchConcerts, type Concert } from "@/lib/concerts";
 import { getFavoriteConcertIds, toggleFavoriteConcert } from "@/lib/favorites";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -17,11 +18,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 function formatConcertDate(date: string | null) {
   if (!date) return "Fecha no disponible";
 
-  return new Intl.DateTimeFormat("es-ES", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  }).format(new Date(`${date}T00:00:00`));
 }
 
 function LikeButton({
@@ -205,16 +201,7 @@ export default function Explore() {
       <Text className="mt-3 text-center text-background">
         No hay conciertos disponibles en esta categoría.
       </Text>
-      <Pressable
-        onPress={() => {
-          // Navigate to the concert creation screen
-        }}
-        className="mt-4 rounded-full border border-[#A47148] bg-background px-4 py-2"
-      >
-        <Text className="text-sm text-[#F3E1CE] font-semibold">
-          Crea un nuevo recordatorio de concierto
-        </Text>
-      </Pressable>
+          <AddConcert />
     </View>
   );
 

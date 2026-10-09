@@ -33,6 +33,7 @@ export default function Concerts() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [favoriteConcerts, setFavoriteConcerts] = useState<Concert[]>([]);
   const [isFavoritesLoading, setIsFavoritesLoading] = useState(true);
+  const [selectedConcert, setSelectedConcert] = useState<Concert | null>(null);
   const categories = [
     { label: "Próximos", icon: "event" },
     { label: "Pasados", icon: "history" },
