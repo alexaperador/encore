@@ -1,7 +1,7 @@
 const TICKETMASTER_URL =
   "https://app.ticketmaster.com/discovery/v2/events.json";
-const MAX_CONCERTS = 200;
-const PAGE_SIZE = 100;
+const MAX_CONCERTS = 50;
+const PAGE_SIZE = 50;
 
 type TicketmasterEvent = {
   id?: string;
@@ -63,7 +63,7 @@ export async function searchConcerts(
     new Date().toISOString().replace(/\.\d{3}Z$/, "Z"),
   );
   url.searchParams.set("size", String(PAGE_SIZE));
-  url.searchParams.set("sort", "date,asc");
+  url.searchParams.set("sort", "relevance,desc");
 
   if (query.keyword) url.searchParams.set("keyword", query.keyword);
   if (query.city) url.searchParams.set("city", query.city);

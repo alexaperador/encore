@@ -25,13 +25,13 @@ function formatConcertDate(date: string | null) {
 }
 
 function LikeButton({
-  concertId,
+  concert,
   isLiked,
   onToggle,
 }: {
-  concertId: string;
+  concert: Concert;
   isLiked: boolean;
-  onToggle: (concertId: string) => void;
+  onToggle: (concert: Concert) => void;
 }) {
   return (
     <Pressable
@@ -39,7 +39,7 @@ function LikeButton({
       accessibilityLabel={
         isLiked ? "Quitar de favoritos" : "Añadir a favoritos"
       }
-      onPress={() => onToggle(concertId)}
+      onPress={() => onToggle(concert)}
       hitSlop={8}
     >
       <MaterialIcons
@@ -52,10 +52,14 @@ function LikeButton({
 }
 
 export default function Explore() {
-  const categories = ["Todos", "Pop", "Rock", "Urbano", "Indie"];
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([
-    "Todos",
-  ]);
+  const categories = [
+    { label: "Todos", icon: "apps" },
+    { label: "Pop", icon: "music-note" },
+    { label: "Rock", icon: "album" },
+    { label: "Urbano", icon: "mic" },
+    { label: "Indie", icon: "headphones" },
+  ] as const;
+  const [selectedCategory, setSelectedCategory] = useState("Todos");
   const [concerts, setConcerts] = useState<Concert[]>([]);
   const [selectedConcert, setSelectedConcert] = useState<Concert | null>(null);
   const [searchText, setSearchText] = useState("");
@@ -67,8 +71,8 @@ export default function Explore() {
     getFavoriteConcertIds().then(setFavoriteIds);
   }, []);
 
-  const handleToggleFavorite = async (concertId: string) => {
-    const nextFavoriteIds = await toggleFavoriteConcert(concertId);
+  const handleToggleFavorite = async (concert: Concert) => {
+    const nextFavoriteIds = await toggleFavoriteConcert(concert);
     setFavoriteIds(nextFavoriteIds);
   };
 
@@ -97,28 +101,16 @@ export default function Explore() {
     };
   }, [searchText]);
 
-  const toggleCategory = (category: string) => {
-    let newSelection: string[];
-
-    if (category === "Todos") {
-      newSelection = selectedCategories.includes("Todos") ? [] : ["Todos"];
-    } else {
-      newSelection = selectedCategories.includes(category)
-        ? selectedCategories.filter((c) => c !== category)
-        : [...selectedCategories.filter((c) => c !== "Todos"), category];
-    }
-
-    setSelectedCategories(newSelection);
+  const selectCategory = (category: string) => {
+    setSelectedCategory(category);
   };
 
   const filteredItems =
-    selectedCategories.length === 0 || selectedCategories.includes("Todos")
+    selectedCategory === "Todos"
       ? concerts
       : concerts.filter((item) =>
-          selectedCategories.some((category) =>
-            item.category.toLowerCase().includes(category.toLowerCase()),
-          ),
-        );
+        item.category.toLowerCase().includes(selectedCategory.toLowerCase()),
+      );
 
   const listHeader = (
     <>
@@ -135,61 +127,95 @@ export default function Explore() {
           color="#C9A27E"
           className="absolute left-4 top-3 z-10"
         />
-        <TextInput
-          className="h-12 rounded-full border border-[#6f4e3783] bg-active pl-12 pr-4 text-white"
-          placeholder="Buscar conciertos"
-          placeholderTextColor="#C9A27E"
-          value={searchText}
-          onChangeText={setSearchText}
-        />
+        <View className="flex-row items-center rounded-full border border-[#6f4e3783] bg-active justify-between pr-4">
+          <TextInput
+            className="h-12 rounded-full border border-[#6f4e3783] bg-active pl-12 pr-4 text-white"
+            placeholder="Buscar conciertos"
+            placeholderTextColor="#C9A27E"
+            value={searchText}
+            onChangeText={setSearchText}
+          />
+          <MaterialIcons
+            name="close"
+            size={20}
+            color="#C9A27E"
+            onPress={() => {
+              setSearchText("");
+            }}
+          />
+        </View>
       </View>
-      <View className="mt-5 flex-row flex-wrap gap-2">
-        {categories.map((category) => {
-          const isSelected = selectedCategories.includes(category);
-
-          return (
-            <Pressable
-              key={category}
-              accessibilityRole="button"
-              accessibilityState={{ selected: isSelected }}
-              onPress={() => toggleCategory(category)}
-              className={`rounded-full border px-4 py-2 ${
-                isSelected
-                  ? "border-background bg-background"
-                  : "border-transparent bg-background/40"
-              }`}
-            >
-              <Text
-                className={
-                  isSelected ? "font-semibold text-white" : "text-background"
-                }
-              >
-                {category}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
-      <View className="mt-4 flex-row items-center justify-between">
-        <Text className="text-lg font-bold text-background">
-          Conciertos destacados
+      <View className="mt-5">
+        <Text className="mb-2 text-xs font-semibold uppercase tracking-widest text-[#A47148]">
+          Filtrar por género
         </Text>
-        <Text className="text-sm text-[#A47148]">Ver todos</Text>
+        <View className="flex-row flex-wrap gap-2">
+          {categories.map((category) => {
+            const isSelected = selectedCategory === category.label;
+
+            return (
+              <Pressable
+                key={category.label}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: isSelected }}
+                onPress={() => selectCategory(category.label)}
+                className={`w-[18%] items-center rounded-2xl border px-2 py-3 ${isSelected
+                  ? "border-[#F3E1CE] bg-[#F3E1CE]"
+                  : "border-[#A47148] bg-[#6F4E37]"
+                  }`}
+              >
+                <MaterialIcons
+                  name={category.icon}
+                  size={20}
+                  color={isSelected ? "#3E2C23" : "#F3E1CE"}
+                />
+                <Text
+                  className={`mt-1 text-sm ${isSelected
+                    ? "font-bold text-[#3E2C23]"
+                    : "font-medium text-[#F3E1CE]"
+                    }`}
+                >
+                  {category.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
       </View>
-      <Text className="mt-4 pb-2 text-lg font-bold text-background">
-        Próximos conciertos
+      <Text className="mt-5 pb-2 text-lg font-bold text-background">
+        {selectedCategory === "Todos"
+          ? "Próximos conciertos"
+          : `Conciertos de ${selectedCategory}`}
       </Text>
     </>
   );
 
   const emptyMessage = isLoading ? (
-    <ActivityIndicator color="#3E2C23" />
+    <View className="items-center py-12">
+      <ActivityIndicator color="#3E2C23" />
+    </View>
   ) : errorMessage ? (
-    <Text className="text-background">{errorMessage}</Text>
+    <View className="items-center px-6 py-12">
+      <MaterialIcons name="cloud-off" size={32} color="#A47148" />
+      <Text className="mt-3 text-center text-background">{errorMessage}</Text>
+    </View>
   ) : (
-    <Text className="text-background">
-      No hay conciertos disponibles en esta categoría.
-    </Text>
+    <View className="items-center px-6 py-12">
+      <MaterialIcons name="event-busy" size={32} color="#A47148" />
+      <Text className="mt-3 text-center text-background">
+        No hay conciertos disponibles en esta categoría.
+      </Text>
+      <Pressable
+        onPress={() => {
+          // Navigate to the concert creation screen
+        }}
+        className="mt-4 rounded-full border border-[#A47148] bg-background px-4 py-2"
+      >
+        <Text className="text-sm text-[#F3E1CE] font-semibold">
+          Crea un nuevo recordatorio de concierto
+        </Text>
+      </Pressable>
+    </View>
   );
 
   return (
@@ -226,7 +252,7 @@ export default function Explore() {
                   {item.title}
                 </Text>
                 <LikeButton
-                  concertId={item.id}
+                  concert={item}
                   isLiked={favoriteIds.includes(item.id)}
                   onToggle={handleToggleFavorite}
                 />

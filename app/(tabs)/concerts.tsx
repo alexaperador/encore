@@ -1,8 +1,8 @@
-import { fetchConcerts, type Concert } from "@/lib/concerts";
-import { getFavoriteConcertIds } from "@/lib/favorites";
+import { getFavoriteConcerts } from "@/lib/favorites";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
+import type { Concert } from "@/lib/concerts";
 import {
   ActivityIndicator,
   FlatList,
@@ -13,13 +13,31 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+function formatConcertTiming(date: string | null) {
+  if (!date) return "Fecha por confirmar";
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const concertDate = new Date(`${date}T00:00:00`);
+  const days = Math.round(
+    (concertDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
+  );
+
+  if (days < 0) return `Finalizado hace ${Math.abs(days)} días`;
+  if (days === 0) return "Hoy";
+  if (days === 1) return "Mañana";
+  return `En ${days} días`;
+}
+
 export default function Concerts() {
-  const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [concerts, setConcerts] = useState<Concert[]>([]);
-  const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
-  const [searchText, setSearchText] = useState<string>("");
-  const categories = ["Próximos", "Pasados", "Favoritos"];
+  const [favoriteConcerts, setFavoriteConcerts] = useState<Concert[]>([]);
+  const [isFavoritesLoading, setIsFavoritesLoading] = useState(true);
+  const categories = [
+    { label: "Próximos", icon: "event" },
+    { label: "Pasados", icon: "history" },
+    { label: "Todos", icon: "list" },
+  ] as const;
   const [selectedCategorie, setSelectedCategorie] =
     useState<string>("Próximos");
 
@@ -27,8 +45,11 @@ export default function Concerts() {
     useCallback(() => {
       let isActive = true;
 
-      getFavoriteConcertIds().then((ids) => {
-        if (isActive) setFavoriteIds(ids);
+      getFavoriteConcerts().then((favorites) => {
+        if (isActive) {
+          setFavoriteConcerts(favorites);
+          setIsFavoritesLoading(false);
+        }
       });
 
       return () => {
@@ -37,52 +58,15 @@ export default function Concerts() {
     }, []),
   );
 
-  useEffect(() => {
-    let isCancelled = false;
-    const timeout = setTimeout(async () => {
-      setIsLoading(true);
-      setErrorMessage(null);
-
-      try {
-        const results = await fetchConcerts({ keyword: searchText.trim() });
-        if (!isCancelled) setConcerts(results);
-      } catch {
-        if (!isCancelled) {
-          setErrorMessage("No se pudieron cargar los conciertos.");
-          setConcerts([]);
-        }
-      } finally {
-        if (!isCancelled) setIsLoading(false);
-      }
-    }, 350);
-
-    return () => {
-      isCancelled = true;
-      clearTimeout(timeout);
-    };
-  }, [searchText]);
-
-  const toggleCategory = (category: string) => {
-    let newSelection: string = selectedCategorie;
-
-    if (category === "Próximos") {
-      newSelection = selectedCategorie === "Próximos" ? "" : "Próximos";
-    } else if (category === "Pasados") {
-      newSelection = selectedCategorie === "Pasados" ? "" : "Pasados";
-    } else if (category === "Favoritos") {
-      newSelection = selectedCategorie === "Favoritos" ? "" : "Favoritos";
-    }
-
-    setSelectedCategorie(newSelection);
+  const selectCategory = (category: string) => {
+    setSelectedCategorie(category);
   };
 
   const currentDate = new Date();
   currentDate.setHours(0, 0, 0, 0);
 
-  const visibleConcerts = concerts.filter((concert) => {
-    if (selectedCategorie === "Favoritos") {
-      return favoriteIds.includes(concert.id);
-    }
+  const visibleConcerts = favoriteConcerts.filter((concert) => {
+    if (selectedCategorie === "Todos") return true;
 
     if (selectedCategorie === "Próximos") {
       return (
@@ -100,44 +84,64 @@ export default function Concerts() {
     return true;
   });
 
-  const emptyMessage = isLoading ? (
-    <ActivityIndicator color="#3E2C23" />
+  const emptyMessage = isFavoritesLoading ? (
+    <View className="items-center py-12">
+      <ActivityIndicator color="#3E2C23" />
+    </View>
   ) : errorMessage ? (
-    <Text className="text-background">{errorMessage}</Text>
+    <View className="items-center px-6 py-12">
+      <MaterialIcons name="cloud-off" size={32} color="#A47148" />
+      <Text className="mt-3 text-center text-background">{errorMessage}</Text>
+    </View>
   ) : (
-    <Text className="text-background">
-      {selectedCategorie === "Favoritos"
-        ? "No hay conciertos marcados como favoritos. Marca alguno desde Explorar."
-        : "No hay conciertos en esta categoría."}
-    </Text>
+    <View className="items-center px-6 py-12">
+      <MaterialIcons
+        name={favoriteConcerts.length === 0 ? "favorite-border" : "event-busy"}
+        size={32}
+        color="#A47148"
+      />
+      <Text className="mt-3 text-center text-background">
+        {favoriteConcerts.length === 0
+          ? "Aún no tienes conciertos guardados. Márcalos desde Explorar."
+          : "No hay conciertos en esta categoría."}
+      </Text>
+    </View>
   );
 
   const listHeader = (
     <>
       <Text className="text-5xl font-bold text-background">Mis Conciertos</Text>
       <Text className="text-xl text-[#A47148]">
-        Mi lista de conciertos favoritos. Marca los que quieras seguir y recibir
-        notificaciones.
+        Tus conciertos guardados, organizados por fecha.
       </Text>
-      <View className="my-5 flex-row flex-wrap gap-2 bg-background/80 rounded-full w-fit">
+      <View
+        accessibilityRole="radiogroup"
+        className="my-5 flex-row rounded-full border border-[#D9B99A] bg-background p-1"
+      >
         {categories.map((category) => {
-          const isSelected = selectedCategorie === category;
+          const isSelected = selectedCategorie === category.label;
 
           return (
             <Pressable
-              key={category}
-              accessibilityRole="button"
+              key={category.label}
+              accessibilityRole="radio"
               accessibilityState={{ selected: isSelected }}
-              onPress={() => toggleCategory(category)}
-              className={`rounded-full py-2 will-change-variable w-32 ${
-                isSelected ? "bg-background" : ""
-              }`}
+              onPress={() => selectCategory(category.label)}
+              className={`min-h-16 flex-1 items-center justify-center rounded-full px-2 py-2 ${isSelected ? "bg-border shadow-sm" : ""
+                }`}
             >
-              <Text
-                className={`${isSelected ? "font-semibold text-[#ffcd9f]" : "text-inactive-icon"} text-center`}
-              >
-                {category}
-              </Text>
+              <View className="flex-row items-center justify-center gap-1">
+                <MaterialIcons
+                  name={category.icon}
+                  size={20}
+                  color={isSelected ? "white" : "#FFCD9F"}
+                />
+                <Text
+                  className={`mt-1 text-center text-xs ${isSelected ? "font-semibold text-white" : "text-[#FFCD9F]"}`}
+                >
+                  {category.label}
+                </Text>
+              </View>
             </Pressable>
           );
         })}
@@ -149,7 +153,9 @@ export default function Concerts() {
     <SafeAreaView edges={["top"]} style={{ flex: 1 }}>
       <FlatList
         style={{ flex: 1 }}
-        data={isLoading || errorMessage ? [] : visibleConcerts}
+        data={
+          isFavoritesLoading || errorMessage ? [] : visibleConcerts
+        }
         keyExtractor={(concert) => concert.id}
         renderItem={({ item: concert }) => (
           <Pressable className="mb-3 flex w-full flex-row gap-3 rounded-2xl bg-background">
@@ -167,18 +173,12 @@ export default function Concerts() {
                 </View>
               )}
             </View>
-            <View className="flex-1">
-              <Text className="text-lg font-bold text-white">
+            <View className="flex-1 justify-center py-3 pr-3">
+              <Text className="text-base font-bold text-white" numberOfLines={2}>
                 {concert.title}
               </Text>
-              <Text className="text-sm text-[#A47148]">
-                Quedan
-                {Math.round(
-                  (new Date(`${concert.date}T00:00:00`).getTime() -
-                    currentDate.getTime()) /
-                    (1000 * 60 * 60 * 24),
-                )}{" "}
-                días, {concert.city}
+              <Text className="mt-1 text-sm text-[#A47148]">
+                {formatConcertTiming(concert.date)}
               </Text>
             </View>
           </Pressable>
