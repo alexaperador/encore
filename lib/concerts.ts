@@ -3,6 +3,7 @@ export type Concert = {
   title: string;
   category: string;
   date: string | null;
+  hour: string | null;
   venue: string | null;
   city: string | null;
   imageUrl: string | null;
@@ -20,11 +21,15 @@ export async function fetchConcerts(params?: {
   keyword?: string;
   city?: string;
   category?: string;
+  offset?: number;
+  limit?: number;
 }): Promise<Concert[]> {
   const url = new URL("/api/concerts", apiUrl);
 
   Object.entries(params ?? {}).forEach(([key, value]) => {
-    if (value) url.searchParams.set(key, value);
+    if (value !== undefined && value !== "") {
+      url.searchParams.set(key, String(value));
+    }
   });
 
   const response = await fetch(url);

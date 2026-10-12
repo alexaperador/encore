@@ -122,7 +122,7 @@ function TabItem({
       }
       style={styles.pressable}
     >
-      <Animated.View style={[styles.item, itemStyle]}>
+      <Animated.View className="rounded-2xl" style={[styles.item, itemStyle]}>
         <TabIcon
           name={name}
           color={isFocused ? COLORS.activeIcon : COLORS.inactiveIcon}
@@ -147,7 +147,7 @@ function FloatingTabBar({ state, descriptors, navigation }: TabBarProps) {
       pointerEvents="box-none"
       style={[styles.overlay, { paddingBottom: Math.max(insets.bottom, 12) }]}
     >
-      <View style={styles.bar} accessibilityRole="tablist">
+      <View style={styles.bar} className="rounded-2xl" accessibilityRole="tablist">
         {state.routes.map((route, index) => (
           <TabItem
             key={route.key}
@@ -189,7 +189,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: COLORS.background,
     borderColor: COLORS.border,
-    borderRadius: 36,
     borderWidth: StyleSheet.hairlineWidth,
     elevation: 10,
     flexDirection: "row",
@@ -209,7 +208,6 @@ const styles = StyleSheet.create({
 
   item: {
     alignItems: "center",
-    borderRadius: 26,
     flexDirection: "row",
     height: 46,
     justifyContent: "center",

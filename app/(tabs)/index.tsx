@@ -1,9 +1,11 @@
-import ModalConcert from "@/components/ModalConcert";
 import AddConcert from "@/components/AddConcert";
+import ConcertCard from "@/components/ConcertCard";
+import ModalConcert from "@/components/ModalConcert";
 import { fetchConcerts, type Concert } from "@/lib/concerts";
 import { getFavoriteConcertIds, toggleFavoriteConcert } from "@/lib/favorites";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useEffect, useState } from "react";
+import { useFocusEffect } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -15,10 +17,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-function formatConcertDate(date: string | null) {
-  if (!date) return "Fecha no disponible";
-
-}
+const CONCERTS_PER_PAGE = 20;
 
 function LikeButton({
   concert,
@@ -52,8 +51,8 @@ export default function Explore() {
     { label: "Todos", icon: "apps" },
     { label: "Pop", icon: "music-note" },
     { label: "Rock", icon: "album" },
-    { label: "Urbano", icon: "mic" },
-    { label: "Indie", icon: "headphones" },
+    { label: "R&B", icon: "mic" },
+    { label: "Latin", icon: "headphones" },
   ] as const;
   const [selectedCategory, setSelectedCategory] = useState("Todos");
   const [concerts, setConcerts] = useState<Concert[]>([]);
@@ -62,10 +61,14 @@ export default function Explore() {
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMoreConcerts, setHasMoreConcerts] = useState(true);
 
-  useEffect(() => {
-    getFavoriteConcertIds().then(setFavoriteIds);
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      getFavoriteConcertIds().then(setFavoriteIds);
+    }, []),
+  );
 
   const handleToggleFavorite = async (concert: Concert) => {
     const nextFavoriteIds = await toggleFavoriteConcert(concert);
@@ -79,8 +82,15 @@ export default function Explore() {
       setErrorMessage(null);
 
       try {
-        const results = await fetchConcerts({ keyword: searchText.trim() });
-        if (!isCancelled) setConcerts(results);
+        const results = await fetchConcerts({
+          keyword: searchText.trim(),
+          limit: CONCERTS_PER_PAGE,
+          offset: 0,
+        });
+        if (!isCancelled) {
+          setConcerts(results);
+          setHasMoreConcerts(results.length === CONCERTS_PER_PAGE);
+        }
       } catch {
         if (!isCancelled) {
           setErrorMessage("No se pudieron cargar los conciertos.");
@@ -107,6 +117,22 @@ export default function Explore() {
       : concerts.filter((item) =>
         item.category.toLowerCase().includes(selectedCategory.toLowerCase()),
       );
+  const loadMoreConcerts = async () => {
+    if (isLoadingMore || !hasMoreConcerts) return;
+
+    setIsLoadingMore(true);
+    try {
+      const results = await fetchConcerts({
+        keyword: searchText.trim(),
+        limit: CONCERTS_PER_PAGE,
+        offset: concerts.length,
+      });
+      setConcerts((currentConcerts) => [...currentConcerts, ...results]);
+      setHasMoreConcerts(results.length === CONCERTS_PER_PAGE);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
 
   const listHeader = (
     <>
@@ -123,9 +149,9 @@ export default function Explore() {
           color="#C9A27E"
           className="absolute left-4 top-3 z-10"
         />
-        <View className="flex-row items-center rounded-full border border-[#6f4e3783] bg-active justify-between pr-4">
+        <View className="flex-row items-center rounded-2xl border border-[#6f4e3783] bg-background justify-between pr-4">
           <TextInput
-            className="h-12 rounded-full border border-[#6f4e3783] bg-active pl-12 pr-4 text-white"
+            className="h-12 pl-12 pr-4 text-white"
             placeholder="Buscar conciertos"
             placeholderTextColor="#C9A27E"
             value={searchText}
@@ -145,7 +171,7 @@ export default function Explore() {
         <Text className="mb-2 text-xs font-semibold uppercase tracking-widest text-[#A47148]">
           Filtrar por género
         </Text>
-        <View className="flex-row flex-wrap gap-2">
+        <View className="flex-row flex-wrap gap-2 bg-background p-2 rounded-2xl">
           {categories.map((category) => {
             const isSelected = selectedCategory === category.label;
 
@@ -155,20 +181,17 @@ export default function Explore() {
                 accessibilityRole="radio"
                 accessibilityState={{ selected: isSelected }}
                 onPress={() => selectCategory(category.label)}
-                className={`w-[18%] items-center rounded-2xl border px-2 py-3 ${isSelected
-                  ? "border-[#F3E1CE] bg-[#F3E1CE]"
-                  : "border-[#A47148] bg-[#6F4E37]"
-                  }`}
+                className={`w-[18%] items-center rounded-2xl p-2 ${isSelected ? "bg-[#6F4E37]" : ""}`}
               >
                 <MaterialIcons
                   name={category.icon}
                   size={20}
-                  color={isSelected ? "#3E2C23" : "#F3E1CE"}
+                  color={isSelected ? "white" : "#FFCD9F"}
                 />
                 <Text
                   className={`mt-1 text-sm ${isSelected
-                    ? "font-bold text-[#3E2C23]"
-                    : "font-medium text-[#F3E1CE]"
+                    ? "font-bold text-white"
+                    : "font-medium text-[#FFCD9F]"
                     }`}
                 >
                   {category.label}
@@ -201,7 +224,7 @@ export default function Explore() {
       <Text className="mt-3 text-center text-background">
         No hay conciertos disponibles en esta categoría.
       </Text>
-          <AddConcert />
+      <AddConcert />
     </View>
   );
 
@@ -212,51 +235,39 @@ export default function Explore() {
         data={isLoading || errorMessage ? [] : filteredItems}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <Pressable
+          <ConcertCard
+            concert={item}
             onPress={() => setSelectedConcert(item)}
-            className="mb-3 flex w-full flex-row gap-3 rounded-2xl bg-background"
-          >
-            <View className="h-25 w-25 overflow-hidden rounded-tl-2xl rounded-bl-2xl">
-              {item.imageUrl ? (
-                <Image
-                  source={{ uri: item.imageUrl }}
-                  accessibilityLabel={item.title}
-                  className="h-full w-full"
-                  resizeMode="cover"
-                />
-              ) : (
-                <View className="flex-1 items-center justify-center bg-[#E5E7EB]">
-                  <MaterialIcons name="image" size={24} color="#9CA3AF" />
-                </View>
-              )}
-            </View>
-            <View className="min-w-0 flex-1 justify-between p-3">
-              <View className="flex-row items-start justify-between gap-2">
-                <Text
-                  className="flex-1 text-base font-bold text-inactive-icon"
-                  numberOfLines={1}
-                >
-                  {item.title}
-                </Text>
-                <LikeButton
-                  concert={item}
-                  isLiked={favoriteIds.includes(item.id)}
-                  onToggle={handleToggleFavorite}
-                />
-              </View>
-              {item.venue || item.city ? (
-                <Text className="text-sm text-shadow" numberOfLines={1}>
-                  {[item.city, item.venue].filter(Boolean).join(" · ")}
-                </Text>
-              ) : null}
-              <Text className="text-xs text-shadow">
-                {formatConcertDate(item.date)}
-              </Text>
-            </View>
-          </Pressable>
-        )}
+            isLiked={favoriteIds.includes(item.id)}
+            onToggleFavorite={handleToggleFavorite}
+          />
+        )
+        }
         ListHeaderComponent={listHeader}
         ListEmptyComponent={emptyMessage}
+        ListFooterComponent={
+          !isLoading &&
+            !errorMessage &&
+            filteredItems.length > 0 &&
+            hasMoreConcerts ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Mostrar más conciertos"
+              disabled={isLoadingMore}
+              onPress={loadMoreConcerts}
+              className="mt-2 mb-4 flex-row items-center justify-center rounded-full border border-[#A47148] bg-[#6F4E37] px-5 py-3"
+            >
+              {isLoadingMore ? (
+                <ActivityIndicator color="#F3E1CE" />
+              ) : (
+                <>
+                  <Text className="font-semibold text-[#F3E1CE]">Mostrar más</Text>
+                  <MaterialIcons name="expand-more" size={20} color="#F3E1CE" />
+                </>
+              )}
+            </Pressable>
+          ) : null
+        }
         initialNumToRender={6}
         maxToRenderPerBatch={6}
         windowSize={5}
@@ -268,12 +279,14 @@ export default function Explore() {
           paddingTop: 16,
         }}
       />
-      {selectedConcert ? (
-        <ModalConcert
-          concert={selectedConcert}
-          onClose={() => setSelectedConcert(null)}
-        />
-      ) : null}
-    </SafeAreaView>
+      {
+        selectedConcert ? (
+          <ModalConcert
+            concert={selectedConcert}
+            onClose={() => setSelectedConcert(null)}
+          />
+        ) : null
+      }
+    </SafeAreaView >
   );
 }

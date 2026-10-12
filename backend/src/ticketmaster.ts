@@ -1,6 +1,5 @@
 const TICKETMASTER_URL =
   "https://app.ticketmaster.com/discovery/v2/events.json";
-const MAX_CONCERTS = 50;
 const PAGE_SIZE = 50;
 
 type TicketmasterEvent = {
@@ -23,6 +22,9 @@ type TicketmasterEvent = {
     height?: number;
   }>;
   _embedded?: {
+    attractions?: Array<{
+      name?: string;
+    }>;
     venues?: Array<{
       name?: string;
       city?: { name?: string };
@@ -40,6 +42,7 @@ export type Concert = {
   title: string;
   category: string;
   date: string | null;
+  hour: string | null;
   venue: string | null;
   city: string | null;
   imageUrl: string | null;
@@ -50,6 +53,8 @@ export type ConcertQuery = {
   keyword?: string;
   city?: string;
   category?: string;
+  offset?: number;
+  limit?: number;
 };
 
 export async function searchConcerts(
@@ -62,6 +67,7 @@ export async function searchConcerts(
     "startDateTime",
     new Date().toISOString().replace(/\.\d{3}Z$/, "Z"),
   );
+  url.searchParams.set("segmentName", "Music");
   url.searchParams.set("size", String(PAGE_SIZE));
   url.searchParams.set("sort", "relevance,desc");
 
@@ -71,11 +77,15 @@ export async function searchConcerts(
     url.searchParams.set("classificationName", query.category);
   }
 
+  const offset = Math.max(0, query.offset ?? 0);
+  const limit = Math.min(50, Math.max(1, query.limit ?? 20));
+  const targetCount = offset + limit;
   const events: TicketmasterEvent[] = [];
+  const artistKeys = new Set<string>();
   let page = 0;
   let totalPages = 1;
 
-  while (page < totalPages && events.length < MAX_CONCERTS) {
+  while (page < totalPages && events.length < targetCount) {
     url.searchParams.set("page", String(page));
 
     const response = await fetch(url);
@@ -85,14 +95,27 @@ export async function searchConcerts(
     }
 
     const data = (await response.json()) as TicketmasterResponse;
-    events.push(
-      ...(data._embedded?.events ?? []).slice(0, MAX_CONCERTS - events.length),
+    const musicEvents = (data._embedded?.events ?? []).filter(
+      (event) =>
+        event.classifications?.[0]?.segment?.name?.toLowerCase() === "music",
     );
+    for (const event of musicEvents) {
+      if (events.length >= targetCount) break;
+
+      const artistName =
+        event._embedded?.attractions?.[0]?.name ?? event.name ?? event.id;
+      const artistKey = artistName?.trim().toLocaleLowerCase();
+
+      if (!artistKey || artistKeys.has(artistKey)) continue;
+
+      artistKeys.add(artistKey);
+      events.push(event);
+    }
     totalPages = data.page?.totalPages ?? page + 1;
     page += 1;
   }
 
-  return events.map((event) => {
+  return events.slice(offset, offset + limit).map((event) => {
     const classification = event.classifications?.[0];
     const venue = event._embedded?.venues?.[0];
     const images = event.images ?? [];
@@ -112,6 +135,7 @@ export async function searchConcerts(
       category:
         classification?.genre?.name ?? classification?.segment?.name ?? "Otros",
       date: event.dates?.start?.localDate ?? null,
+      hour: event.dates?.start?.localTime?.slice(0, 5) ?? null,
       venue: venue?.name ?? null,
       city: venue?.city?.name ?? null,
       imageUrl: image?.url ?? null,

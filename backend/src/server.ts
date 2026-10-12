@@ -1,8 +1,8 @@
 import dotenv from "dotenv";
 import {
-    createServer,
-    type IncomingMessage,
-    type ServerResponse,
+  createServer,
+  type IncomingMessage,
+  type ServerResponse,
 } from "node:http";
 import { searchConcerts, type ConcertQuery } from "./ticketmaster.js";
 
@@ -29,6 +29,8 @@ function getQuery(request: IncomingMessage): ConcertQuery {
     keyword: url.searchParams.get("keyword")?.trim() || undefined,
     city: url.searchParams.get("city")?.trim() || undefined,
     category: url.searchParams.get("category")?.trim() || undefined,
+    offset: Number(url.searchParams.get("offset") ?? 0),
+    limit: Number(url.searchParams.get("limit") ?? 20),
   };
 }
 

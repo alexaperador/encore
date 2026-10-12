@@ -50,6 +50,9 @@ export default function ModalConcert({
               {formatConcertDate(concert.date)}
             </Text>
             <Text className="mb-2 text-base text-[#3E2C23]">
+              {concert.hour ?? "Hora no disponible"}
+            </Text>
+            <Text className="mb-2 text-base text-[#3E2C23]">
               {concert.venue ?? "Lugar no disponible"}
             </Text>
             <Text className="mb-2 text-base text-[#3E2C23]">

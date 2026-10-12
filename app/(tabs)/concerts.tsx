@@ -1,17 +1,19 @@
-import { getFavoriteConcerts } from "@/lib/favorites";
+import AddConcert from "@/components/AddConcert";
+import ConcertCard from "@/components/ConcertCard";
+import type { Concert } from "@/lib/concerts";
+import { getFavoriteConcerts, toggleFavoriteConcert } from "@/lib/favorites";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
-import type { Concert } from "@/lib/concerts";
 import {
   ActivityIndicator,
   FlatList,
-  Image,
   Pressable,
   Text,
-  View,
+  View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+
 
 function formatConcertTiming(date: string | null) {
   if (!date) return "Fecha por confirmar";
@@ -59,6 +61,15 @@ export default function Concerts() {
     }, []),
   );
 
+  const handleToggleFavorite = async (concert: Concert) => {
+    const nextFavorites = favoriteConcerts.filter(
+      (favorite) => favorite.id !== concert.id,
+    );
+
+    setFavoriteConcerts(nextFavorites);
+    await toggleFavoriteConcert(concert);
+  };
+
   const selectCategory = (category: string) => {
     setSelectedCategorie(category);
   };
@@ -95,17 +106,20 @@ export default function Concerts() {
       <Text className="mt-3 text-center text-background">{errorMessage}</Text>
     </View>
   ) : (
-    <View className="items-center px-6 py-12">
-      <MaterialIcons
-        name={favoriteConcerts.length === 0 ? "favorite-border" : "event-busy"}
-        size={32}
-        color="#A47148"
-      />
-      <Text className="mt-3 text-center text-background">
-        {favoriteConcerts.length === 0
-          ? "Aún no tienes conciertos guardados. Márcalos desde Explorar."
-          : "No hay conciertos en esta categoría."}
-      </Text>
+    <View className="items-center px-6 py-12 justify-center">
+      <View className="items-center">
+        <MaterialIcons
+          name={favoriteConcerts.length === 0 ? "favorite-border" : "event-busy"}
+          size={32}
+          color="#A47148"
+        />
+        <Text className="mt-3 text-center text-background">
+          {favoriteConcerts.length === 0
+            ? "Aún no tienes conciertos guardados. Márcalos desde Explorar."
+            : "No hay conciertos en esta categoría."
+          }  </Text>
+      </View>
+      <AddConcert />
     </View>
   );
 
@@ -117,7 +131,7 @@ export default function Concerts() {
       </Text>
       <View
         accessibilityRole="radiogroup"
-        className="my-5 flex-row rounded-full border border-[#D9B99A] bg-background p-1"
+        className="my-5 flex-row rounded-2xl border border-[#D9B99A] bg-background p-2"
       >
         {categories.map((category) => {
           const isSelected = selectedCategorie === category.label;
@@ -128,7 +142,7 @@ export default function Concerts() {
               accessibilityRole="radio"
               accessibilityState={{ selected: isSelected }}
               onPress={() => selectCategory(category.label)}
-              className={`min-h-16 flex-1 items-center justify-center rounded-full px-2 py-2 ${isSelected ? "bg-border shadow-sm" : ""
+              className={`min-h-16 flex-1 items-center justify-center rounded-2xl will-change-variable px-2 py-2 ${isSelected ? "bg-border shadow-sm" : ""
                 }`}
             >
               <View className="flex-row items-center justify-center gap-1">
@@ -159,30 +173,12 @@ export default function Concerts() {
         }
         keyExtractor={(concert) => concert.id}
         renderItem={({ item: concert }) => (
-          <Pressable className="mb-3 flex w-full flex-row gap-3 rounded-2xl bg-background">
-            <View className="h-25 w-25 overflow-hidden rounded-tl-2xl rounded-bl-2xl">
-              {concert.imageUrl ? (
-                <Image
-                  source={{ uri: concert.imageUrl }}
-                  accessibilityLabel={concert.title}
-                  className="h-full w-full"
-                  resizeMode="cover"
-                />
-              ) : (
-                <View className="flex-1 items-center justify-center bg-[#E5E7EB]">
-                  <MaterialIcons name="image" size={24} color="#9CA3AF" />
-                </View>
-              )}
-            </View>
-            <View className="flex-1 justify-center py-3 pr-3">
-              <Text className="text-base font-bold text-white" numberOfLines={2}>
-                {concert.title}
-              </Text>
-              <Text className="mt-1 text-sm text-[#A47148]">
-                {formatConcertTiming(concert.date)}
-              </Text>
-            </View>
-          </Pressable>
+          <ConcertCard
+            concert={concert}
+            onPress={() => setSelectedConcert(concert)}
+            isLiked
+            onToggleFavorite={handleToggleFavorite}
+          />
         )}
         ListHeaderComponent={listHeader}
         ListEmptyComponent={emptyMessage}
