@@ -4,17 +4,18 @@ import { useEffect, useState } from "react";
 import { Image, Pressable, Text, View } from "react-native";
 import LikeButton from "./LikedButton";
 import { getFavoriteConcertIds, toggleFavoriteConcert } from "@/lib/favorites";
+import ModalConcert from "./ModalConcert";
 
 export default function ConcertCard({
     concert,
-    onPress,
     isLiked,
     onToggleFavorite,
+    children,
 }: {
     concert: Concert;
-    onPress: () => void;
     isLiked?: boolean;
     onToggleFavorite?: (concert: Concert) => void | Promise<void>;
+    children?: React.ReactNode;
 }) {
     const [selectedConcert, setSelectedConcert] = useState<Concert | null>(null);
     const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
@@ -62,7 +63,7 @@ export default function ConcertCard({
                         resizeMode="cover"
                     />
                 ) : (
-                    <View className="flex-1 concerts-center justify-center bg-[#E5E7EB]">
+                    <View className="flex-1 justify-center bg-[#E5E7EB]">
                         <MaterialIcons name="image" size={24} color="#9CA3AF" />
                     </View>
                 )}
@@ -70,7 +71,7 @@ export default function ConcertCard({
             <View className="min-w-0 flex-1 justify-between p-3">
                 <View className="flex-row concerts-start justify-between gap-2">
                     <Text
-                        className="flex-1 text-base font-bold text-inactive-icon"
+                        className="flex-1 text-base font-bold text-[#FFCD9F]"
                         numberOfLines={1}
                     >
                         {concert.title}
@@ -95,18 +96,30 @@ export default function ConcertCard({
                             year: "numeric"
                         })
                         : "Fecha no disponible"}
+                    {concert.hour ? ` · ${concert.hour}` : ""}
                 </Text>
-                <View className="flex-row justify-between">
-                    <Text className="text-xs text-shadow">
-                        {concert.category || "Categoría no disponible"}
+                <View className="flex-row justify-between items-center">
+                    <Text className="text-xs text-[#FFCD9F] bg-active px-2 py-1 rounded font-semibold">
+                        {formatConcertTiming(concert.date)}
                     </Text>
-                    <View className="flex-row concerts-center gap-1">
+
+                    <View className="flex-row items-center gap-x-2">
+                        {children}
                         <Pressable>
                             <MaterialIcons name="ios-share" size={24} color="#9CA3AF" />
                         </Pressable>
                     </View>
                 </View>
             </View>
+            {
+                selectedConcert ? (
+                    <ModalConcert
+                        concert={selectedConcert}
+                        onClose={() => setSelectedConcert(null)}
+                    />
+                ) : null
+            }
         </Pressable>
+
     );
 }

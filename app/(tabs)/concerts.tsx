@@ -2,6 +2,10 @@ import AddConcert from "@/components/AddConcert";
 import ConcertCard from "@/components/ConcertCard";
 import type { Concert } from "@/lib/concerts";
 import { getFavoriteConcerts, toggleFavoriteConcert } from "@/lib/favorites";
+import {
+  getNotificationConcertIds,
+  toggleConcertNotification,
+} from "@/lib/notifications";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
@@ -34,8 +38,8 @@ function formatConcertTiming(date: string | null) {
 export default function Concerts() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [favoriteConcerts, setFavoriteConcerts] = useState<Concert[]>([]);
+  const [notificationIds, setNotificationIds] = useState<string[]>([]);
   const [isFavoritesLoading, setIsFavoritesLoading] = useState(true);
-  const [selectedConcert, setSelectedConcert] = useState<Concert | null>(null);
   const categories = [
     { label: "Próximos", icon: "event" },
     { label: "Pasados", icon: "history" },
@@ -55,6 +59,10 @@ export default function Concerts() {
         }
       });
 
+      getNotificationConcertIds().then((ids: string[]) => {
+        if (isActive) setNotificationIds(ids);
+      });
+
       return () => {
         isActive = false;
       };
@@ -68,6 +76,11 @@ export default function Concerts() {
 
     setFavoriteConcerts(nextFavorites);
     await toggleFavoriteConcert(concert);
+  };
+
+  const handleToggleNotification = async (concert: Concert) => {
+    const nextNotificationIds = await toggleConcertNotification(concert.id);
+    setNotificationIds(nextNotificationIds);
   };
 
   const selectCategory = (category: string) => {
@@ -131,7 +144,7 @@ export default function Concerts() {
       </Text>
       <View
         accessibilityRole="radiogroup"
-        className="my-5 flex-row rounded-2xl border border-[#D9B99A] bg-background p-2"
+        className="my-5 flex-row rounded-2xl bg-background p-2"
       >
         {categories.map((category) => {
           const isSelected = selectedCategorie === category.label;
@@ -175,9 +188,34 @@ export default function Concerts() {
         renderItem={({ item: concert }) => (
           <ConcertCard
             concert={concert}
-            onPress={() => setSelectedConcert(concert)}
             isLiked
             onToggleFavorite={handleToggleFavorite}
+            children={
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={
+                  notificationIds.includes(concert.id)
+                    ? `Desactivar notificación para ${concert.title}`
+                    : `Activar notificación para ${concert.title}`
+                }
+                accessibilityState={{
+                  selected: notificationIds.includes(concert.id),
+                }}
+                hitSlop={8}
+                onPress={() => handleToggleNotification(concert)}
+                className="rounded-full active:opacity-70"
+              >
+                <MaterialIcons
+                  name={
+                    notificationIds.includes(concert.id)
+                      ? "notifications-active"
+                      : "notifications-none"
+                  }
+                  size={20}
+                  color={notificationIds.includes(concert.id) ? "#FFCD9F" : "#9CA3AF"}
+                />
+              </Pressable>
+            }
           />
         )}
         ListHeaderComponent={listHeader}

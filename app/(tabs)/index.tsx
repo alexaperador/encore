@@ -19,33 +19,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 const CONCERTS_PER_PAGE = 20;
 
-function LikeButton({
-  concert,
-  isLiked,
-  onToggle,
-}: {
-  concert: Concert;
-  isLiked: boolean;
-  onToggle: (concert: Concert) => void;
-}) {
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={
-        isLiked ? "Quitar de favoritos" : "Añadir a favoritos"
-      }
-      onPress={() => onToggle(concert)}
-      hitSlop={8}
-    >
-      <MaterialIcons
-        name={isLiked ? "favorite" : "favorite-border"}
-        size={20}
-        color={isLiked ? "#C65D5D" : "#A3ABB5"}
-      />
-    </Pressable>
-  );
-}
-
 export default function Explore() {
   const categories = [
     { label: "Todos", icon: "apps" },
@@ -56,7 +29,6 @@ export default function Explore() {
   ] as const;
   const [selectedCategory, setSelectedCategory] = useState("Todos");
   const [concerts, setConcerts] = useState<Concert[]>([]);
-  const [selectedConcert, setSelectedConcert] = useState<Concert | null>(null);
   const [searchText, setSearchText] = useState("");
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -237,7 +209,6 @@ export default function Explore() {
         renderItem={({ item }) => (
           <ConcertCard
             concert={item}
-            onPress={() => setSelectedConcert(item)}
             isLiked={favoriteIds.includes(item.id)}
             onToggleFavorite={handleToggleFavorite}
           />
@@ -255,7 +226,7 @@ export default function Explore() {
               accessibilityLabel="Mostrar más conciertos"
               disabled={isLoadingMore}
               onPress={loadMoreConcerts}
-              className="mt-2 mb-4 flex-row items-center justify-center rounded-full border border-[#A47148] bg-[#6F4E37] px-5 py-3"
+              className="mt-2 mb-4 flex-row items-center justify-center rounded-2xl bg-background px-5 py-3"
             >
               {isLoadingMore ? (
                 <ActivityIndicator color="#F3E1CE" />
@@ -279,14 +250,6 @@ export default function Explore() {
           paddingTop: 16,
         }}
       />
-      {
-        selectedConcert ? (
-          <ModalConcert
-            concert={selectedConcert}
-            onClose={() => setSelectedConcert(null)}
-          />
-        ) : null
-      }
     </SafeAreaView >
   );
 }
