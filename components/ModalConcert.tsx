@@ -60,17 +60,17 @@ export default function ModalConcert({
             </Text>
             <Pressable
               accessibilityRole="link"
-                accessibilityLabel="Abrir página de tickets"
-                onPress={() => {
-                    if (concert.ticketUrl) {
-                        window.open(concert.ticketUrl, "_blank");
-                    }
-                }}
+              accessibilityLabel="Abrir página de tickets"
+              onPress={() => {
+                if (concert.ticketUrl) {
+                  window.open(concert.ticketUrl, "_blank");
+                }
+              }}
               className="rounded bg-[#3E2C23] px-4 py-2"
             >
-                <Text className="text-base font-bold text-[#F3F4F6]">
-                    Comprar Tickets
-                </Text>
+              <Text className="text-base font-bold text-[#F3F4F6]">
+                Comprar Tickets
+              </Text>
             </Pressable>
           </View>
         </ScrollView>
