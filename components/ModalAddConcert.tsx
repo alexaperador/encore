@@ -1,3 +1,5 @@
+import type { Concert } from "@/lib/concerts";
+import { toggleFavoriteConcert } from "@/lib/favorites";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
@@ -31,8 +33,10 @@ function formatTime(date: Date) {
 
 export default function ModalAddConcert({
     onClose,
+    onSaved,
 }: {
     onClose: () => void;
+    onSaved?: () => void;
 }) {
 
     const [image, setImage] = useState<string | null>(null);
@@ -43,6 +47,8 @@ export default function ModalAddConcert({
     const [timeText, setTimeText] = useState(formatTime(new Date()));
     const [isCalendarVisible, setIsCalendarVisible] = useState(false);
     const [isTimePickerVisible, setIsTimePickerVisible] = useState(false);
+    const [city, setCity] = useState<string>("");
+    const [venue, setVenue] = useState<string>("");
 
     const formattedDate = new Intl.DateTimeFormat("es-ES", {
         day: "numeric",
@@ -103,37 +109,89 @@ export default function ModalAddConcert({
         }
     };
 
+    const saveConcert = async () => {
+        const trimmedArtist = artist.trim();
+        const trimmedCity = city.trim();
+
+        if (!trimmedArtist || !trimmedCity) {
+            Alert.alert(
+                "Faltan datos",
+                "Completa los campos obligatorios para guardar el concierto.",
+            );
+            return;
+        }
+
+        const concert: Concert = {
+            id: `local-${Date.now()}`,
+            title: eventName.trim() || trimmedArtist,
+            category: "manual",
+            date: toCalendarDate(date),
+            hour: timeText,
+            venue: venue.trim() || null,
+            city: trimmedCity,
+            imageUrl: image,
+            ticketUrl: null,
+            image: {
+                url: image,
+                width: null,
+                height: null,
+            },
+        };
+
+        try {
+            await toggleFavoriteConcert(concert);
+            onSaved?.();
+            onClose();
+        } catch {
+            Alert.alert(
+                "No se pudo guardar",
+                "Inténtalo de nuevo dentro de un momento.",
+            );
+        }
+    };
+
     return (
         <Modal animationType="slide" visible onRequestClose={onClose}>
-            <SafeAreaView edges={["top"]} style={{ flex: 1 }}>
+            <SafeAreaView
+                edges={["top"]}
+                style={{ flex: 1, backgroundColor: "#F8F1EA" }}
+            >
                 <KeyboardAvoidingView
                     behavior={Platform.OS === "ios" ? "padding" : "height"}
-                    style={{ flex: 1 }}
+                    style={{ flex: 1, backgroundColor: "#F8F1EA" }}
                 >
                     <ScrollView
-                        contentContainerStyle={{ paddingBottom: 180 }}
+                        contentContainerStyle={{ paddingBottom: 40 }}
                         keyboardShouldPersistTaps="handled"
                         showsVerticalScrollIndicator={false}
                     >
-                        <View className="relative flex-row items-center justify-center px-6 py-5">
+                        <View className="flex-row items-center justify-between border-b border-[#EADACA] px-6 py-4">
+                            <View className="flex-1 pr-4">
+                                <Text className="text-2xl font-bold text-[#3E2C23]">
+                                    Añadir concierto
+                                </Text>
+                                <Text className="mt-1 text-sm text-[#8A684E]">
+                                    Rellena los campos para añadir un nuevo recordatorio.
+                                </Text>
+                            </View>
                             <Pressable
                                 accessibilityRole="button"
                                 accessibilityLabel="Cerrar añadir concierto"
                                 onPress={onClose}
-                                className="absolute left-5 rounded-full bg-[#EADACA] p-2"
+                                className="rounded-full bg-[#EADACA] p-2"
                             >
                                 <MaterialIcons name="close" size={22} color="#3E2C23" />
                             </Pressable>
-                            <Text className="text-xl font-bold text-[#3E2C23]">
-                                Añadir concierto
-                            </Text>
                         </View>
-                        <View className="px-6 pt-7">
+                        <View className="px-6 pt-6">
+                            <Text className="mb-3 text-xs font-bold uppercase tracking-widest text-[#8A684E]">
+                                Portada
+                            </Text>
                             <Pressable
                                 accessibilityRole="button"
                                 accessibilityLabel={image ? "Cambiar portada" : "Elegir portada"}
                                 onPress={pickImage}
-                                className="h-56 overflow-hidden rounded-3xl border border-[#D9B99A] bg-[#EADACA]"
+                                className="h-52 overflow-hidden rounded-3xl border border-[#D9B99A] bg-[#EADACA]"
                             >
                                 {image ? (
                                     <Image
@@ -160,38 +218,46 @@ export default function ModalAddConcert({
                                     </View>
                                 )}
                             </Pressable>
-                            <View className="mt-6">
+                            <Text className="mb-1 mt-8 text-xs font-bold uppercase tracking-widest text-[#8A684E]">
+                                Información del concierto
+                            </Text>
+                            <View className="mt-4">
                                 <Text className="mb-2 text-base font-semibold text-[#3E2C23]">
                                     Artista *
                                 </Text>
                                 <TextInput
                                     placeholder="Nombre del artista"
-                                    className="h-12 rounded-2xl border border-[#D9B99A] bg-[#EADACA] px-4 py-3 text-base font-semibold text-[#8A684E] placeholder:text-[#8A684E]/50"
+                                    className="rounded-2xl border border-[#D9B99A] bg-[#EADACA] px-4 py-3 text-base font-semibold text-[#3E2C23]"
+                                    placeholderTextColor="#8A684E"
                                     onChangeText={(text) => {
                                         setArtist(text);
                                     }}
                                     value={artist}
                                 />
                             </View>
-                            <View className="mt-6">
+                            <View className="mt-5">
                                 <Text className="mb-2 text-base font-semibold text-[#3E2C23]">
                                     Nombre del evento
                                 </Text>
                                 <TextInput
                                     placeholder="Ej: El Baifo Tour"
-                                    className="h-12 rounded-2xl border border-[#D9B99A] bg-[#EADACA] px-4 py-3 text-base font-semibold text-[#8A684E] placeholder:text-[#8A684E]/50"
+                                    placeholderTextColor="#8A684E"
+                                    className="rounded-2xl border border-[#D9B99A] bg-[#EADACA] px-4 py-3 text-base font-semibold text-[#3E2C23]"
                                     onChangeText={(text) => {
                                         setEventName(text);
                                     }}
                                     value={eventName}
                                 />
                             </View>
-                            <View className="mt-6">
+                            <Text className="mb-1 mt-8 text-xs font-bold uppercase tracking-widest text-[#8A684E]">
+                                Cuándo es
+                            </Text>
+                            <View className="mt-4">
                                 <Text className="mb-2 text-base font-semibold text-[#3E2C23]">
                                     Fecha *
                                 </Text>
                                 <View className="overflow-hidden rounded-2xl border border-[#D9B99A] bg-[#EADACA]">
-                                    <View className="flex-row items-center px-4 py-3">
+                                    <View className="flex-row items-center px-4 py-2">
                                         <MaterialIcons name="event" size={20} color="#6F4E37" />
                                         <Text className="ml-3 text-base font-semibold text-[#3E2C23]">
                                             {formattedDate}
@@ -247,7 +313,7 @@ export default function ModalAddConcert({
                                     Hora
                                 </Text>
                                 <View className="overflow-hidden rounded-2xl border border-[#D9B99A] bg-[#EADACA]">
-                                    <View className="flex-row items-center px-4 py-3">
+                                    <View className="flex-row items-center px-4 py-2">
                                         <MaterialIcons name="schedule" size={20} color="#6F4E37" />
                                         <TextInput
                                             accessibilityLabel="Hora del concierto"
@@ -313,6 +379,53 @@ export default function ModalAddConcert({
                                     ) : null}
                                 </View>
                             </View>
+                            <Text className="mb-1 mt-8 text-xs font-bold uppercase tracking-widest text-[#8A684E]">
+                                Ubicación
+                            </Text>
+                            <View className="mt-6">
+                                <Text className="mb-2 text-base font-semibold text-[#3E2C23]">
+                                    Ciudad *
+                                </Text>
+                                <View className="flex-row items-center overflow-hidden rounded-2xl border border-[#D9B99A] bg-[#EADACA] px-4 py-3">
+                                    <MaterialIcons name="location-city" size={20} color="#6F4E37" />
+                                    <TextInput
+                                        accessibilityLabel="Ciudad del concierto"
+                                        className="ml-3 flex-1 py-0 text-base font-semibold text-[#3E2C23]"
+                                        placeholder="Ej: Barcelona"
+                                        placeholderTextColor="#8A684E"
+                                        value={city}
+                                        onChangeText={setCity}
+                                    />
+                                </View>
+                            </View>
+                            <View className="mt-6">
+                                <Text className="mb-2 text-base font-semibold text-[#3E2C23]">
+                                    Recinto
+                                </Text>
+                                <View className="flex-row items-center overflow-hidden rounded-2xl border border-[#D9B99A] bg-[#EADACA] px-4 py-3">
+                                    <MaterialIcons name="place" size={20} color="#6F4E37" />
+                                    <TextInput
+                                        accessibilityLabel="Recinto del concierto"
+                                        className="ml-3 flex-1 py-0 text-base font-semibold text-[#3E2C23]"
+                                        placeholder="Ej: Palau Sant Jordi"
+                                        placeholderTextColor="#8A684E"
+                                        value={venue}
+                                        onChangeText={setVenue}
+                                    />
+                                </View>
+                            </View>
+                        </View>
+                        <View className="mt-10 px-6">
+                            <Pressable
+                                accessibilityRole="button"
+                                accessibilityLabel="Guardar concierto"
+                                onPress={saveConcert}
+                                className="items-center rounded-2xl bg-[#6F4E37] px-6 py-3"
+                            >
+                                <Text className="text-base font-bold text-[#F8F1EA]">
+                                    Guardar
+                                </Text>
+                            </Pressable>
                         </View>
                     </ScrollView>
                 </KeyboardAvoidingView>

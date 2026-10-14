@@ -40,6 +40,14 @@ export default function Concerts() {
   const [favoriteConcerts, setFavoriteConcerts] = useState<Concert[]>([]);
   const [notificationIds, setNotificationIds] = useState<string[]>([]);
   const [isFavoritesLoading, setIsFavoritesLoading] = useState(true);
+
+  const refreshFavorites = useCallback(async (isActive: () => boolean = () => true) => {
+    const favorites = await getFavoriteConcerts();
+    if (!isActive()) return;
+    setFavoriteConcerts(favorites);
+    setIsFavoritesLoading(false);
+  }, []);
+  
   const categories = [
     { label: "Próximos", icon: "event" },
     { label: "Pasados", icon: "history" },
@@ -52,12 +60,7 @@ export default function Concerts() {
     useCallback(() => {
       let isActive = true;
 
-      getFavoriteConcerts().then((favorites) => {
-        if (isActive) {
-          setFavoriteConcerts(favorites);
-          setIsFavoritesLoading(false);
-        }
-      });
+      refreshFavorites(() => isActive);
 
       getNotificationConcertIds().then((ids: string[]) => {
         if (isActive) setNotificationIds(ids);
@@ -66,7 +69,7 @@ export default function Concerts() {
       return () => {
         isActive = false;
       };
-    }, []),
+    }, [refreshFavorites]),
   );
 
   const handleToggleFavorite = async (concert: Concert) => {
@@ -132,13 +135,26 @@ export default function Concerts() {
             : "No hay conciertos en esta categoría."
           }  </Text>
       </View>
-      <AddConcert />
+      <AddConcert children={
+        <View className="flex flex-row items-center justify-center rounded-2xl bg-background px-4 py-2 mt-4">
+          <Text className="text-[#FFCD9F]">Añadir recordatorio</Text>
+          <MaterialIcons name="add" size={32} color="#FFCD9F" />
+        </View>
+      } onConcertAdded={refreshFavorites} />
     </View>
   );
 
   const listHeader = (
     <>
-      <Text className="text-5xl font-bold text-background">Mis Conciertos</Text>
+      <View className="flex-row items-center justify-between gap-3">
+        <Text className="flex-1 text-4xl font-bold text-background">Mis Conciertos</Text>
+        <AddConcert children={
+          <View className="flex-row items-center justify-center rounded-2xl bg-background px-3 py-2">
+            <Text className="mr-1 font-semibold text-[#FFCD9F]">Añadir</Text>
+            <MaterialIcons name="add" size={24} color="#FFCD9F" />
+          </View>
+        } onConcertAdded={refreshFavorites} />
+      </View>
       <Text className="text-xl text-[#A47148]">
         Tus conciertos guardados, organizados por fecha.
       </Text>

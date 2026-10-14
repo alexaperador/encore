@@ -1,8 +1,14 @@
 import { useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable } from "react-native";
 import ModalAddConcert from "./ModalAddConcert";
 
-export default function AddConcert() {
+export default function AddConcert({
+    children,
+    onConcertAdded,
+}: {
+    children: React.ReactNode;
+    onConcertAdded?: () => void;
+}) {
     const [isVisible, setIsVisible] = useState(false);
 
     return (
@@ -11,14 +17,14 @@ export default function AddConcert() {
                 accessibilityRole="button"
                 accessibilityLabel="Añadir recordatorio"
                 onPress={() => setIsVisible(true)}
-                className="mt-4"
             >
-                <View className="flex items-center justify-center rounded-full bg-background px-4 py-2">
-                    <Text className="text-white">Añadir recordatorio</Text>
-                </View>
+                {children}
             </Pressable>
             {isVisible ? (
-                <ModalAddConcert onClose={() => setIsVisible(false)} />
+                <ModalAddConcert
+                    onClose={() => setIsVisible(false)}
+                    onSaved={onConcertAdded}
+                />
             ) : null}
         </>
     );
