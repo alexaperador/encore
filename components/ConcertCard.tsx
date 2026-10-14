@@ -1,9 +1,9 @@
 import { Concert } from "@/lib/concerts";
+import { getFavoriteConcertIds, toggleFavoriteConcert } from "@/lib/favorites";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
-import { Image, Pressable, Text, View } from "react-native";
+import { Image, Pressable, Share, Text, View } from "react-native";
 import LikeButton from "./LikedButton";
-import { getFavoriteConcertIds, toggleFavoriteConcert } from "@/lib/favorites";
 import ModalConcert from "./ModalConcert";
 
 export default function ConcertCard({
@@ -49,6 +49,32 @@ export default function ConcertCard({
         if (days === 1) return "Mañana";
         return `En ${days} días`;
     }
+
+    const shareConcert = async () => {
+        const date = concert.date
+            ? new Date(`${concert.date}T00:00:00`).toLocaleDateString("es-ES", {
+                weekday: "long",
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+            })
+            : "Fecha por confirmar";
+        const location = [concert.venue, concert.city]
+            .filter(Boolean)
+            .join(" · ");
+        const details = [date, concert.hour, location]
+            .filter(Boolean)
+            .join("\n");
+        const appLink = `encore://concert?data=${encodeURIComponent(JSON.stringify(concert))}`;
+        const message = `\uD83C\uDFB6 ${concert.title}\n${details}${concert.ticketUrl ? `\n\nEntradas: ${concert.ticketUrl}` : ""}\n\nVer en Encore: ${appLink}`;
+
+        await Share.share({
+            title: concert.title,
+            message,
+            url: appLink,
+        });
+    };
+
     return (
         <Pressable
             onPress={() => setSelectedConcert(concert)}
@@ -105,7 +131,16 @@ export default function ConcertCard({
 
                     <View className="flex-row items-center gap-x-2">
                         {children}
-                        <Pressable>
+                        <Pressable
+                            accessibilityRole="button"
+                            accessibilityLabel={`Compartir ${concert.title}`}
+                            hitSlop={8}
+                            onPress={(event) => {
+                                event.stopPropagation();
+                                void shareConcert();
+                            }}
+                            className="rounded-full active:opacity-70"
+                        >
                             <MaterialIcons name="ios-share" size={24} color="#9CA3AF" />
                         </Pressable>
                     </View>

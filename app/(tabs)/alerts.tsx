@@ -20,7 +20,7 @@ export default function Alerts() {
   const [favoriteConcerts, setFavoriteConcerts] = useState<Concert[]>([]);
   const [notificationIds, setNotificationIds] = useState<string[]>([]);
   const [activeReminders, setActiveReminders] = useState<string[]>([]);
-  
+
   const reminderOptions = [
     {
       id: "30-days",
@@ -31,6 +31,11 @@ export default function Alerts() {
       id: "7-days",
       title: "7 días antes",
       icon: "event",
+    },
+    {
+      id: "1-day",
+      title: "1 día antes",
+      icon: "event-available",
     },
     {
       id: "same-day",
