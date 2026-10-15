@@ -124,6 +124,7 @@ export default function ModalAddConcert({
         const concert: Concert = {
             id: `local-${Date.now()}`,
             title: eventName.trim() || trimmedArtist,
+            artist: trimmedArtist,
             category: "manual",
             date: toCalendarDate(date),
             hour: timeText,

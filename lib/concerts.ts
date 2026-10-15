@@ -1,6 +1,7 @@
 export type Concert = {
   id: string;
   title: string;
+  artist: string;
   category: string;
   date: string | null;
   hour: string | null;

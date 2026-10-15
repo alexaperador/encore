@@ -6,6 +6,7 @@ type TicketmasterEvent = {
   id?: string;
   name?: string;
   url?: string;
+  artist?: string;
   dates?: {
     start?: {
       localDate?: string;
@@ -40,6 +41,7 @@ type TicketmasterResponse = {
 export type Concert = {
   id: string;
   title: string;
+  artist: string;
   category: string;
   date: string | null;
   hour: string | null;
@@ -134,6 +136,7 @@ export async function searchConcerts(
       title: event.name ?? "Sin título",
       category:
         classification?.genre?.name ?? classification?.segment?.name ?? "Otros",
+      artist: event.artist ?? event._embedded?.attractions?.[0]?.name ?? "",
       date: event.dates?.start?.localDate ?? null,
       hour: event.dates?.start?.localTime?.slice(0, 5) ?? null,
       venue: venue?.name ?? null,

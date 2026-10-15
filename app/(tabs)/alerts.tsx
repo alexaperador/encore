@@ -2,8 +2,10 @@ import ConcertCard from "@/components/ConcertCard";
 import { Concert } from "@/lib/concerts";
 import { getFavoriteConcerts, toggleFavoriteConcert } from "@/lib/favorites";
 import {
+  cancelConcertNotifications,
   getNotificationConcertIds,
   getReminderPreferences,
+  scheduleConcertNotifications,
   toggleConcertNotification,
   toggleReminderPreference,
 } from "@/lib/notifications";
@@ -12,6 +14,7 @@ import { useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { ActivityIndicator, FlatList, Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+
 
 export default function Alerts() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -43,7 +46,6 @@ export default function Alerts() {
       icon: "today",
     },
   ] as const;
-
 
   useFocusEffect(
     useCallback(() => {
@@ -96,11 +98,14 @@ export default function Alerts() {
   const handleToggleNotification = async (concert: Concert) => {
     const nextNotificationIds = await toggleConcertNotification(concert.id);
     setNotificationIds(nextNotificationIds);
-    setAlertsConcerts((currentAlerts) =>
-      nextNotificationIds.includes(concert.id)
-        ? currentAlerts
-        : currentAlerts.filter((alert) => alert.id !== concert.id),
-    );
+    if (nextNotificationIds.includes(concert.id)) {
+      await scheduleConcertNotifications(concert, activeReminders);
+    } else {
+      await cancelConcertNotifications(concert.id);
+      setAlertsConcerts((currentAlerts) =>
+        currentAlerts.filter((alert) => alert.id !== concert.id),
+      );
+    }
   };
 
   const emptyMessage = isNotificationsLoading ? (
@@ -161,6 +166,9 @@ export default function Alerts() {
               onPress={async () => {
                 const nextReminders = await toggleReminderPreference(reminder.id);
                 setActiveReminders(nextReminders);
+                for (const concert of alertsConcerts) {
+                  await scheduleConcertNotifications(concert, nextReminders);
+                }
               }}
               className={`flex-row items-center px-4 py-3 active:opacity-80 ${index > 0 ? "border-t border-[#6F4E37]" : ""}`}
             >
