@@ -39,3 +39,25 @@ export async function fetchConcerts(params?: {
   const data = (await response.json()) as { concerts: Concert[] };
   return data.concerts;
 }
+
+export function getConcertDaysRemaining(date: string | null) {
+  if (!date) return null;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const concertDate = new Date(`${date}T00:00:00`);
+  return Math.round(
+    (concertDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
+  );
+}
+
+export function formatConcertTiming(date: string | null) {
+  const days = getConcertDaysRemaining(date);
+
+  if (days === null) return "Fecha por confirmar";
+
+  if (days < 0) return `Finalizado hace ${Math.abs(days)} días`;
+  if (days === 0) return "Hoy";
+  if (days === 1) return "Mañana";
+  return `En ${days} días`;
+}

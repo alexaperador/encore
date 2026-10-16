@@ -1,4 +1,4 @@
-import { Concert } from "@/lib/concerts";
+import { Concert, formatConcertTiming } from "@/lib/concerts";
 import { getFavoriteConcertIds, toggleFavoriteConcert } from "@/lib/favorites";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
@@ -33,22 +33,6 @@ export default function ConcertCard({
         const nextFavoriteIds = await toggleFavoriteConcert(concert);
         setFavoriteIds(nextFavoriteIds);
     };
-
-    function formatConcertTiming(date: string | null) {
-        if (!date) return "Fecha por confirmar";
-
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const concertDate = new Date(`${date}T00:00:00`);
-        const days = Math.round(
-            (concertDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
-        );
-
-        if (days < 0) return `Finalizado hace ${Math.abs(days)} días`;
-        if (days === 0) return "Hoy";
-        if (days === 1) return "Mañana";
-        return `En ${days} días`;
-    }
 
     const shareConcert = async () => {
         const date = concert.date
