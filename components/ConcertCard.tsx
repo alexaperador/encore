@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Image, Pressable, Share, Text, View } from "react-native";
 import LikeButton from "./LikedButton";
 import ModalConcert from "./ModalConcert";
+import { shareConcert } from "@/lib/share";
 
 export default function ConcertCard({
     concert,
@@ -32,31 +33,6 @@ export default function ConcertCard({
 
         const nextFavoriteIds = await toggleFavoriteConcert(concert);
         setFavoriteIds(nextFavoriteIds);
-    };
-
-    const shareConcert = async () => {
-        const date = concert.date
-            ? new Date(`${concert.date}T00:00:00`).toLocaleDateString("es-ES", {
-                weekday: "long",
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-            })
-            : "Fecha por confirmar";
-        const location = [concert.venue, concert.city]
-            .filter(Boolean)
-            .join(" · ");
-        const details = [date, concert.hour, location]
-            .filter(Boolean)
-            .join("\n");
-        const appLink = `encore://concert?data=${encodeURIComponent(JSON.stringify(concert))}`;
-        const message = `\uD83C\uDFB6 ${concert.title}\n${details}${concert.ticketUrl ? `\n\nEntradas: ${concert.ticketUrl}` : ""}\n\nVer en Encore: ${appLink}`;
-
-        await Share.share({
-            title: concert.title,
-            message,
-            url: appLink,
-        });
     };
 
     return (
@@ -121,7 +97,7 @@ export default function ConcertCard({
                             hitSlop={8}
                             onPress={(event) => {
                                 event.stopPropagation();
-                                void shareConcert();
+                                void shareConcert(concert);
                             }}
                             className="rounded-full active:opacity-70"
                         >

@@ -6,7 +6,7 @@ export default function AddConcert({
     children,
     onConcertAdded,
 }: {
-    children: React.ReactNode;
+    children?: React.ReactNode;
     onConcertAdded?: () => void;
 }) {
     const [isVisible, setIsVisible] = useState(false);

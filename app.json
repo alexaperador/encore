@@ -35,6 +35,12 @@
         }
       ],
       [
+        "expo-calendar",
+        {
+          "calendarPermission": "Encore necesita acceso a tu calendario para añadir conciertos."
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon.png",
