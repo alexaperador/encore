@@ -2,6 +2,7 @@ import type { Concert } from "@/lib/concerts";
 import { toggleFavoriteConcert } from "@/lib/favorites";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
+import React from "react";
 import { useState } from "react";
 import {
     Alert,
@@ -228,7 +229,7 @@ export default function ModalAddConcert({
                                 </Text>
                                 <TextInput
                                     placeholder="Nombre del artista"
-                                    className="rounded-2xl border border-[#D9B99A] bg-[#EADACA] px-4 py-3 text-base font-semibold text-[#3E2C23]"
+                                    className="rounded-2xl border border-[#D9B99A] bg-[#EADACA] px-4 py-3  font-semibold text-[#3E2C23]"
                                     placeholderTextColor="#8A684E"
                                     onChangeText={(text) => {
                                         setArtist(text);
@@ -243,7 +244,7 @@ export default function ModalAddConcert({
                                 <TextInput
                                     placeholder="Ej: El Baifo Tour"
                                     placeholderTextColor="#8A684E"
-                                    className="rounded-2xl border border-[#D9B99A] bg-[#EADACA] px-4 py-3 text-base font-semibold text-[#3E2C23]"
+                                    className="rounded-2xl border border-[#D9B99A] bg-[#EADACA] px-4 py-3 font-semibold text-[#3E2C23]"
                                     onChangeText={(text) => {
                                         setEventName(text);
                                     }}
@@ -260,7 +261,7 @@ export default function ModalAddConcert({
                                 <View className="overflow-hidden rounded-2xl border border-[#D9B99A] bg-[#EADACA]">
                                     <View className="flex-row items-center px-4 py-2">
                                         <MaterialIcons name="event" size={20} color="#6F4E37" />
-                                        <Text className="ml-3 text-base font-semibold text-[#3E2C23]">
+                                        <Text className="ml-3 font-semibold text-[#3E2C23]">
                                             {formattedDate}
                                         </Text>
                                         <Pressable
@@ -318,7 +319,7 @@ export default function ModalAddConcert({
                                         <MaterialIcons name="schedule" size={20} color="#6F4E37" />
                                         <TextInput
                                             accessibilityLabel="Hora del concierto"
-                                            className="ml-3 flex-1 py-0 text-base font-semibold text-[#3E2C23]"
+                                            className="ml-3 flex-1 py-0  font-semibold text-[#3E2C23]"
                                             keyboardType="number-pad"
                                             maxLength={5}
                                             onChangeText={updateTimeFromText}
@@ -391,7 +392,7 @@ export default function ModalAddConcert({
                                     <MaterialIcons name="location-city" size={20} color="#6F4E37" />
                                     <TextInput
                                         accessibilityLabel="Ciudad del concierto"
-                                        className="ml-3 flex-1 py-0 text-base font-semibold text-[#3E2C23]"
+                                        className="ml-3 flex-1 py-1 font-semibold text-[#3E2C23]"
                                         placeholder="Ej: Barcelona"
                                         placeholderTextColor="#8A684E"
                                         value={city}
@@ -407,7 +408,7 @@ export default function ModalAddConcert({
                                     <MaterialIcons name="place" size={20} color="#6F4E37" />
                                     <TextInput
                                         accessibilityLabel="Recinto del concierto"
-                                        className="ml-3 flex-1 py-0 text-base font-semibold text-[#3E2C23]"
+                                        className="ml-3 flex-1 py-1 font-semibold text-[#3   E2C23]"
                                         placeholder="Ej: Palau Sant Jordi"
                                         placeholderTextColor="#8A684E"
                                         value={venue}

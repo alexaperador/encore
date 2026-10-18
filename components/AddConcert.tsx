@@ -1,12 +1,13 @@
-import { useState } from "react";
+import { useState, ReactNode } from "react";
 import { Pressable } from "react-native";
 import ModalAddConcert from "./ModalAddConcert";
+import React from "react";
 
 export default function AddConcert({
     children,
     onConcertAdded,
 }: {
-    children?: React.ReactNode;
+    children?: ReactNode;
     onConcertAdded?: () => void;
 }) {
     const [isVisible, setIsVisible] = useState(false);

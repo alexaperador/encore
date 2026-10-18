@@ -9,7 +9,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import * as Calendar from "expo-calendar";
 import * as Linking from 'expo-linking';
 import { useFocusEffect } from "expo-router";
-import { useCallback, useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   Alert,
   Image,
@@ -169,11 +169,11 @@ export default function ModalConcert({
   return (
     <Modal animationType="slide" visible onRequestClose={onClose}>
       <SafeAreaView
-        edges={["left", "right", "bottom"]}
-        style={{ flex: 1, backgroundColor: "#FFFFFF" }}
+        edges={["left", "right"]}
+        style={{ flex: 1, backgroundColor: "#F8F4EF" }}
       >
         <ScrollView style={{ flex: 1 }}>
-          <View className="relative h-[360px] w-full overflow-hidden bg-[#3E2C23]">
+          <View className="w-full overflow-hidden bg-[#3E2C23]">
             {concert.imageUrl ? (
               <Image
                 source={{ uri: concert.imageUrl }}
@@ -190,72 +190,92 @@ export default function ModalConcert({
                 />
               </View>
             )}
+            <View className="absolute inset-x-0 bottom-0" />
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Cerrar detalles"
               onPress={onClose}
-              className="absolute left-7 top-20 z-10 rounded-2xl bg-[#C9A27E]/90 p-2"
+              className="absolute left-5 top-15 z-10 h-11 w-11 items-center justify-center rounded-full bg-black/35"
             >
               <MaterialIcons name="arrow-back" size={24} color="white" />
             </Pressable>
+            <View className="absolute bottom-5 left-5 right-5">
+              <Text className="text-3xl font-bold text-white" numberOfLines={2}>
+                {concert.artist ?? "Artista no disponible"}
+              </Text>
+              <Text className="mt-1 text-base text-white/80" numberOfLines={1}>
+                {concert.title ?? "Título no disponible"}
+              </Text>
+            </View>
           </View>
-          <View className="px-4 py-6">
-            <Text className="text-4xl font-bold text-[#3E2C23]">
-              {concert.artist ?? "Artista no disponible"}
-            </Text>
-            <Text className="mb-2 text-lg text-[#3E2C23]">
-              {concert.title ?? "Título no disponible"}
-            </Text>
-            <View className="flex-row items-center">
-              <MaterialIcons name="calendar-today" size={30} color="#3E2C23" />
-              <View>
-                <Text className="ml-2 text-base text-[#3E2C23]">
-                  {formatConcertDate(concert.date)}
-                </Text>
-                <Text className="ml-2 text-base text-[#3E2C23]/70">
-                  {concert.hour ?? "Hora no disponible"}
-                </Text>
+          <View className="px-5 pb-8 pt-5">
+            <View className="rounded-2xl bg-white px-4 py-4 shadow-sm">
+              <View className="flex-row items-center border-b border-[#EDE0D4] pb-4">
+                <View className="h-10 w-10 items-center justify-center rounded-full bg-[#F3E7DB]">
+                  <MaterialIcons name="calendar-today" size={21} color="#6F4E37" />
+                </View>
+                <View className="ml-3 flex-1">
+                  <Text className="text-xs font-semibold uppercase tracking-wider text-[#9B7A62]">
+                    Fecha y hora
+                  </Text>
+                  <Text className="mt-1 text-base font-semibold text-[#3E2C23]">
+                    {formatConcertDate(concert.date)}
+                  </Text>
+                  <Text className="mt-0.5 text-sm text-[#3E2C23]/60">
+                    {concert.hour ?? "Hora no disponible"}
+                  </Text>
+                </View>
+              </View>
+              <View className="flex-row items-center pt-4">
+                <View className="h-10 w-10 items-center justify-center rounded-full bg-[#F3E7DB]">
+                  <MaterialIcons name="location-on" size={21} color="#6F4E37" />
+                </View>
+                <View className="ml-3 flex-1">
+                  <Text className="text-xs font-semibold uppercase tracking-wider text-[#9B7A62]">
+                    Ubicación
+                  </Text>
+                  <Text className="mt-1 text-base font-semibold text-[#3E2C23]">
+                    {concert.venue ?? "Lugar no disponible"}
+                  </Text>
+                  <Text className="mt-0.5 text-sm text-[#3E2C23]/60">
+                    {concert.city ?? "Ciudad no disponible"}
+                  </Text>
+                </View>
               </View>
             </View>
-            <View className="flex-row items-center">
-              <MaterialIcons name="location-on" size={30} color="#3E2C23" />
-              <View>
-                <Text className="ml-2 text-base text-[#3E2C23]">
-                  {concert.venue ?? "Lugar no disponible"}
-                </Text>
-                <Text className="ml-2 text-base text-[#3E2C23]/70">
-                  {concert.city ?? "Ciudad no disponible"}
-                </Text>
-              </View>
-            </View>
-            <View className="mt-6 flex-row gap-2">
+            <Text className="mb-3 mt-6 text-xs font-bold uppercase tracking-[2px] text-[#9B7A62]">
+              Planifica tu experiencia
+            </Text>
+            <View className="flex-row gap-2">
               {actions.map((action) => (
                 <Pressable
                   key={action.label}
                   accessibilityRole="button"
                   accessibilityLabel={action.label}
                   onPress={action.onPress}
-                  className="min-h-[76px] flex-1 items-center justify-center rounded-2xl bg-[#C9A27E] px-1 py-3"
+                  className="min-h-[82px] flex-1 items-center justify-center rounded-2xl border border-[#E7D8CA] bg-white px-1 py-3"
                   style={({ pressed }) => ({ opacity: pressed ? 0.65 : 1 })}
                 >
-                  <MaterialIcons
-                    name={
-                      action.label === "Recordatorio"
-                        ? notificationIds.includes(concert.id)
-                          ? "notifications-active"
-                          : "notifications-none"
-                        : action.icon
-                    }
-                    size={22}
-                    color="white"
-                  />
-                  <Text className="mt-1 text-center text-xs font-semibold text-white">
+                  <View className="h-9 w-9 items-center justify-center rounded-full bg-[#F3E7DB]">
+                    <MaterialIcons
+                      name={
+                        action.label === "Recordatorio"
+                          ? notificationIds.includes(concert.id)
+                            ? "notifications-active"
+                            : "notifications-none"
+                          : action.icon
+                      }
+                      size={20}
+                      color="#6F4E37"
+                    />
+                  </View>
+                  <Text className="mt-2 text-center text-[11px] font-semibold text-[#3E2C23]">
                     {action.label}
                   </Text>
                 </Pressable>
               ))}
             </View>
-            <View className="mt-6 rounded-2xl bg-[#C9A27E] px-5 py-4">
+            <View className="mt-6 rounded-2xl bg-background px-5 py-4">
               {daysRemaining !== null && daysRemaining >= 0 ? (
                 <View className="flex-row items-center justify-between">
                   <View>
@@ -273,7 +293,7 @@ export default function ModalConcert({
                   />
                 </View>
               ) : (
-                <Text className="text-base font-semibold text-[#3E2C23]">
+                <Text className="text-base font-semibold text-white">
                   {formatConcertTiming(concert.date)}
                 </Text>
               )}

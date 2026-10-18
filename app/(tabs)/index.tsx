@@ -5,6 +5,7 @@ import { fetchConcerts, type Concert } from "@/lib/concerts";
 import { getFavoriteConcertIds, toggleFavoriteConcert } from "@/lib/favorites";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
+import React from "react";
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -121,9 +122,9 @@ export default function Explore() {
           color="#C9A27E"
           className="absolute left-4 top-3 z-10"
         />
-        <View className="flex-row items-center rounded-2xl border border-[#6f4e3783] bg-background justify-between pr-4">
+        <View className="flex-row items-center rounded-2xl border border-[#6f4e3783] bg-background justify-between pr-10">
           <TextInput
-            className="h-12 pl-12 pr-4 text-white"
+            className="h-12 pl-12 w-full pr-4 text-white"
             placeholder="Buscar conciertos"
             placeholderTextColor="#C9A27E"
             value={searchText}

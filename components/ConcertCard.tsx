@@ -6,6 +6,7 @@ import { Image, Pressable, Share, Text, View } from "react-native";
 import LikeButton from "./LikedButton";
 import ModalConcert from "./ModalConcert";
 import { shareConcert } from "@/lib/share";
+import React from "react";
 
 export default function ConcertCard({
     concert,
