@@ -2,7 +2,6 @@ import type { Concert } from "@/lib/concerts";
 import { toggleFavoriteConcert } from "@/lib/favorites";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import React from "react";
 import { useState } from "react";
 import {
     Alert,

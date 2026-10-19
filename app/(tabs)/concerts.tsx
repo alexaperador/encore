@@ -8,7 +8,6 @@ import {
 } from "@/lib/notifications";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
-import React from "react";
 import { useCallback, useState } from "react";
 import {
   ActivityIndicator,

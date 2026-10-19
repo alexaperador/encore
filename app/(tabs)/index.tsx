@@ -5,7 +5,6 @@ import { fetchConcerts, type Concert } from "@/lib/concerts";
 import { getFavoriteConcertIds, toggleFavoriteConcert } from "@/lib/favorites";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
-import React from "react";
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
