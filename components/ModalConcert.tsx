@@ -283,7 +283,7 @@ export default function ModalConcert({
                       Quedan
                     </Text>
                     <Text className="mt-1 text-3xl font-bold text-white">
-                      {daysRemaining} {daysRemaining === 1 ? "día" : "días"}
+                      {daysRemaining} {daysRemaining === 1 ? "día" : daysRemaining === 0 ? "hoy" : "días"}
                     </Text>
                   </View>
                   <MaterialIcons

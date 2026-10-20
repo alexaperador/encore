@@ -147,13 +147,7 @@ export default function Concerts() {
   const listHeader = (
     <>
       <View className="flex-row items-center justify-between gap-3">
-        <Text className="flex-1 text-4xl font-bold text-background">Mis Conciertos</Text>
-        <AddConcert children={
-          <View className="flex-row items-center justify-center rounded-2xl bg-background px-3 py-2">
-            <Text className="mr-1 font-semibold text-[#FFCD9F]">Añadir</Text>
-            <MaterialIcons name="add" size={24} color="#FFCD9F" />
-          </View>
-        } onConcertAdded={refreshFavorites} />
+        <Text className="flex-1 text-5xl font-bold text-background">Mis Conciertos</Text>
       </View>
       <Text className="text-xl text-[#A47148]">
         Tus conciertos guardados, organizados por fecha.
@@ -190,6 +184,12 @@ export default function Concerts() {
           );
         })}
       </View>
+      <AddConcert children={
+        <View className="flex-row items-center justify-center rounded-2xl bg-background px-3 py-2 mb-5">
+          <Text className="mr-1 font-semibold text-[#FFCD9F]">Añadir</Text>
+          <MaterialIcons name="add" size={24} color="#FFCD9F" />
+        </View>
+      } onConcertAdded={refreshFavorites} />
     </>
   );
 
@@ -234,6 +234,7 @@ export default function Concerts() {
             }
           />
         )}
+        
         ListHeaderComponent={listHeader}
         ListEmptyComponent={emptyMessage}
         initialNumToRender={6}

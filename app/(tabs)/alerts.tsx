@@ -12,7 +12,7 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
-import { ActivityIndicator, FlatList, Pressable, Text, View } from "react-native";
+import { ActivityIndicator, FlatList, Pressable, Switch, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 
@@ -158,20 +158,7 @@ export default function Alerts() {
           const isActive = activeReminders.includes(reminder.id);
 
           return (
-            <Pressable
-              key={reminder.id}
-              accessibilityRole="switch"
-              accessibilityLabel={`Recordatorio ${reminder.title}`}
-              accessibilityState={{ checked: isActive }}
-              onPress={async () => {
-                const nextReminders = await toggleReminderPreference(reminder.id);
-                setActiveReminders(nextReminders);
-                for (const concert of alertsConcerts) {
-                  await scheduleConcertNotifications(concert, nextReminders);
-                }
-              }}
-              className={`flex-row items-center px-4 py-3 active:opacity-80 ${index > 0 ? "border-t border-[#6F4E37]" : ""}`}
-            >
+            <View key={reminder.id} className={`flex-row items-center px-4 py-3 ${index > 0 ? "border-t border-[#6F4E37]" : ""}`}>
               <View className={`rounded-full p-2 ${isActive ? "bg-[#6F4E37]" : "bg-[#4A3529]"}`}>
                 <MaterialIcons
                   name={reminder.icon}
@@ -180,16 +167,24 @@ export default function Alerts() {
                 />
               </View>
               <View className="ml-3 flex-1">
-                <Text className="font-semibold text-[#FFCD9F]">
+                <Text className={`font-semibold ${isActive ? "text-[#FFCD9F]" : "text-[#9CA3AF]"}`}>
                   {reminder.title}
                 </Text>
               </View>
-              <MaterialIcons
-                name={isActive ? "toggle-on" : "toggle-off"}
-                size={40}
-                color={isActive ? "#FFCD9F" : "#9CA3AF"}
+              <Switch
+                accessibilityLabel="Activar"
+                value={isActive}
+                onValueChange={async () => {
+                  const nextReminders = await toggleReminderPreference(reminder.id);
+                  setActiveReminders(nextReminders);
+                  for (const concert of alertsConcerts) {
+                    await scheduleConcertNotifications(concert, nextReminders);
+                  }
+                }}
+                trackColor={{ false: "#6F4E37", true: "#A47148" }}
+                thumbColor={isActive ? "#FFCD9F" : "#C9A27E"}
               />
-            </Pressable>
+            </View>
           );
         })}
       </View>
