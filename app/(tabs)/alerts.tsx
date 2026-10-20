@@ -160,7 +160,7 @@ export default function Alerts() {
 
           return (
             <View key={reminder.id} className={`flex-row items-center px-4 py-3 ${index > 0 ? "border-t border-[#6F4E37]" : ""}`}>
-              <View className={`rounded-full p-2 ${isActive ? "bg-[#6F4E37]" : "bg-[#4A3529]"}`}>
+              <View className={`rounded-2xl p-2 ${isActive ? "bg-[#6F4E37]" : "bg-[#4A3529]"}`}>
                 <MaterialIcons
                   name={reminder.icon}
                   size={22}

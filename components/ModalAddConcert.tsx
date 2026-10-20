@@ -372,7 +372,7 @@ export default function ModalAddConcert({
                                                     >
                                                         <MaterialIcons name="keyboard-arrow-up" size={26} color="#6F4E37" />
                                                     </Pressable>
-                                                    <View className="min-w-[72px] items-center rounded-xl border border-[#C9A27E] bg-[#F8F1EA] px-3 py-2">
+                                                    <View className="min-w-[72px] items-center rounded-2xl border border-[#C9A27E] bg-[#F8F1EA] px-3 py-2">
                                                         <Text className="text-2xl font-bold tracking-widest text-[#3E2C23]">
                                                             {String(value).padStart(2, "0")}
                                                         </Text>
