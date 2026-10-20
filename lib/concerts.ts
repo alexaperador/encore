@@ -1,3 +1,5 @@
+import { i18n } from "@/lib/i18n";
+
 export type Concert = {
   id: string;
   title: string;
@@ -34,7 +36,7 @@ export async function fetchConcerts(params?: {
   });
 
   const response = await fetch(url);
-  if (!response.ok) throw new Error("No se pudieron cargar los conciertos");
+  if (!response.ok) throw new Error(i18n.t("concerts.fetchError"));
 
   const data = (await response.json()) as { concerts: Concert[] };
   return data.concerts;
@@ -54,10 +56,18 @@ export function getConcertDaysRemaining(date: string | null) {
 export function formatConcertTiming(date: string | null) {
   const days = getConcertDaysRemaining(date);
 
-  if (days === null) return "Fecha por confirmar";
+  if (days === null) return i18n.t("concertcard.timing.unknown");
 
-  if (days < 0) return `Finalizado hace ${Math.abs(days)} días`;
-  if (days === 0) return "Hoy";
-  if (days === 1) return "Mañana";
-  return `En ${days} días`;
+  if (days < 0) {
+    const count = Math.abs(days);
+    return i18n.t(
+      count === 1
+        ? "concertcard.timing.finishedDay"
+        : "concertcard.timing.finishedDays",
+      { count },
+    );
+  }
+  if (days === 0) return i18n.t("concertcard.timing.today");
+  if (days === 1) return i18n.t("concertcard.timing.tomorrow");
+  return i18n.t("concertcard.timing.inDays", { count: days });
 }

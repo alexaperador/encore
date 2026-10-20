@@ -1,9 +1,10 @@
 import { COLORS } from "@/constants/Colors";
+import { i18n, subscribeToLanguage } from "@/lib/i18n";
 import { MaterialIcons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import type { ComponentProps } from "react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import Animated, {
   interpolate,
@@ -26,13 +27,6 @@ const icons = {
 } as const;
 
 type RouteName = keyof typeof icons;
-
-const labels: Record<RouteName, string> = {
-  index: "Explorar",
-  concerts: "Conciertos",
-  alerts: "Alertas",
-  settings: "Ajustes",
-};
 
 type TabBarProps = Parameters<
   NonNullable<ComponentProps<typeof Tabs>["tabBar"]>
@@ -68,7 +62,6 @@ function TabItem({
   const name = (route.name in icons ? route.name : "index") as RouteName;
   const label =
     (typeof options.title === "string" && options.title) ||
-    labels[name] ||
     route.name;
 
   useEffect(() => {
@@ -163,6 +156,20 @@ function FloatingTabBar({ state, descriptors, navigation }: TabBarProps) {
 }
 
 export default function TabLayout() {
+  const [, refreshLanguage] = useState(0);
+
+  useEffect(
+    () => subscribeToLanguage(() => refreshLanguage((value) => value + 1)),
+    [refreshLanguage],
+  );
+
+  const labels: Record<RouteName, string> = {
+    index: i18n.t("navbar.explore"),
+    concerts: i18n.t("navbar.concerts"),
+    alerts: i18n.t("navbar.alerts"),
+    settings: i18n.t("navbar.settings"),
+  };
+
   return (
     <Tabs
       tabBar={(props) => <FloatingTabBar {...props} />}

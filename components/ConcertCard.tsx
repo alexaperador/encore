@@ -6,6 +6,7 @@ import { Image, Pressable, Text, View } from "react-native";
 import LikeButton from "./LikedButton";
 import ModalConcert from "./ModalConcert";
 import { shareConcert } from "@/lib/share";
+import { i18n } from "@/lib/i18n";
 
 export default function ConcertCard({
     concert,
@@ -40,7 +41,7 @@ export default function ConcertCard({
             onPress={() => setSelectedConcert(concert)}
             className="mb-3 flex h-30 w-full flex-row gap-3 rounded-2xl bg-background"
         >
-            <View className="w-25 overflow-hidden rounded-tl-2xl rounded-bl-2xl">
+            <View className="w-30 overflow-hidden rounded-tl-2xl rounded-bl-2xl">
                 {concert.imageUrl ? (
                     <Image
                         source={{ uri: concert.imageUrl }}
@@ -75,13 +76,13 @@ export default function ConcertCard({
                 ) : null}
                 <Text className="text-xs text-shadow">
                     {concert.date
-                        ? new Date(concert.date).toLocaleString("es-ES", {
+                        ? new Date(concert.date).toLocaleString(i18n.locale === "en" ? "en-US" : "es-ES", {
                             weekday: "long",
                             day: "2-digit",
                             month: "long",
                             year: "numeric"
                         })
-                        : "Fecha no disponible"}
+                        : i18n.t("concertcard.dateNotAvailable")}
                     {concert.hour ? ` · ${concert.hour}` : ""}
                 </Text>
                 <View className="flex-row justify-between items-center">

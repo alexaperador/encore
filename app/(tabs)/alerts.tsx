@@ -14,6 +14,7 @@ import { useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { ActivityIndicator, FlatList, Pressable, Switch, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { i18n } from "@/lib/i18n";
 
 
 export default function Alerts() {
@@ -27,22 +28,22 @@ export default function Alerts() {
   const reminderOptions = [
     {
       id: "30-days",
-      title: "30 días antes",
+      title: i18n.t("alerts.reminderOptions.30.label"),
       icon: "date-range",
     },
     {
       id: "7-days",
-      title: "7 días antes",
+      title: i18n.t("alerts.reminderOptions.7.label"),
       icon: "event",
     },
     {
       id: "1-day",
-      title: "1 día antes",
+      title: i18n.t("alerts.reminderOptions.1.label"),
       icon: "event-available",
     },
     {
       id: "same-day",
-      title: "El mismo día",
+      title: i18n.t("alerts.reminderOptions.0.label"),
       icon: "today",
     },
   ] as const;
@@ -73,7 +74,7 @@ export default function Alerts() {
         .catch(() => {
           if (!isActive) return;
 
-          setErrorMessage("No se pudieron cargar tus alertas.");
+          setErrorMessage(i18n.t("alerts.errorMessage"));
           setIsNotificationsLoading(false);
         });
 
@@ -126,7 +127,7 @@ export default function Alerts() {
           color="#A47148"
         />
         <Text className="mt-3 text-center text-background">
-          Aún no tienes alertas activas. Activa la campana en un concierto para verlo aquí.
+          {i18n.t("alerts.emptyMessage")}
         </Text>
       </View>
     </View>
@@ -135,10 +136,10 @@ export default function Alerts() {
   const listHeader = (
     <View className="mb-6">
       <View className="flex-row items-center justify-between gap-3">
-        <Text className="flex-1 text-4xl font-bold text-background">Mis Alertas</Text>
+        <Text className="flex-1 text-4xl font-bold text-background">{i18n.t("alerts.title")}</Text>
       </View>
       <Text className="text-xl text-[#A47148]">
-        Recibe avisos de los conciertos que no quieres perderte.
+        {i18n.t("alerts.subtitle")}
       </Text>
     </View>
   );
@@ -146,11 +147,11 @@ export default function Alerts() {
   const listFooter = (
     <View className="mt-8">
       <View>
-        <Text className="mb-2 text-lg font-bold text-background">
-          Configuración de recordatorios
+        <Text className="text-xl font-bold text-background">
+          {i18n.t("alerts.titleConfiguration")}
         </Text>
         <Text className="text-sm text-[#A47148]">
-          Elige cuándo quieres recibir avisos para tus conciertos.
+          {i18n.t("alerts.subtitleConfiguration")}
         </Text>
       </View>
       <View className="mt-4 overflow-hidden rounded-2xl bg-background">
@@ -173,6 +174,7 @@ export default function Alerts() {
               </View>
               <Switch
                 accessibilityLabel="Activar"
+                accessibilityHint="Toca para activar o desactivar las notificaciones"
                 value={isActive}
                 onValueChange={async () => {
                   const nextReminders = await toggleReminderPreference(reminder.id);
@@ -208,8 +210,8 @@ export default function Alerts() {
                 accessibilityRole="button"
                 accessibilityLabel={
                   notificationIds.includes(concert.id)
-                    ? `Desactivar notificación para ${concert.title}`
-                    : `Activar notificación para ${concert.title}`
+                    ? i18n.t("alerts.accessibilityLabelDisabled") + concert.title
+                    : i18n.t("alerts.accessibilityLabelActive") + concert.title
                 }
                 accessibilityState={{
                   selected: notificationIds.includes(concert.id),

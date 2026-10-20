@@ -2,6 +2,7 @@ import AddConcert from "@/components/AddConcert";
 import ConcertCard from "@/components/ConcertCard";
 import type { Concert } from "@/lib/concerts";
 import { getFavoriteConcerts, toggleFavoriteConcert } from "@/lib/favorites";
+import { i18n } from "@/lib/i18n";
 import {
   getNotificationConcertIds,
   toggleConcertNotification,
@@ -18,23 +19,6 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-
-function formatConcertTiming(date: string | null) {
-  if (!date) return "Fecha por confirmar";
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const concertDate = new Date(`${date}T00:00:00`);
-  const days = Math.round(
-    (concertDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
-  );
-
-  if (days < 0) return `Finalizado hace ${Math.abs(days)} días`;
-  if (days === 0) return "Hoy";
-  if (days === 1) return "Mañana";
-  return `En ${days} días`;
-}
-
 export default function Concerts() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [favoriteConcerts, setFavoriteConcerts] = useState<Concert[]>([]);
@@ -47,14 +31,14 @@ export default function Concerts() {
     setFavoriteConcerts(favorites);
     setIsFavoritesLoading(false);
   }, []);
-  
+
   const categories = [
-    { label: "Próximos", icon: "event" },
-    { label: "Pasados", icon: "history" },
-    { label: "Todos", icon: "list" },
+    { label: i18n.t("concerts.categories.upcoming"), icon: "event" },
+    { label: i18n.t("concerts.categories.past"), icon: "history" },
+    { label: i18n.t("concerts.categories.all"), icon: "list" },
   ] as const;
   const [selectedCategorie, setSelectedCategorie] =
-    useState<string>("Próximos");
+    useState<string>(i18n.t("concerts.categories.upcoming"));
 
   useFocusEffect(
     useCallback(() => {
@@ -94,15 +78,15 @@ export default function Concerts() {
   currentDate.setHours(0, 0, 0, 0);
 
   const visibleConcerts = favoriteConcerts.filter((concert) => {
-    if (selectedCategorie === "Todos") return true;
+    if (selectedCategorie === i18n.t("concerts.categories.all")) return true;
 
-    if (selectedCategorie === "Próximos") {
+    if (selectedCategorie === i18n.t("concerts.categories.upcoming")) {
       return (
         !concert.date || new Date(`${concert.date}T00:00:00`) >= currentDate
       );
     }
 
-    if (selectedCategorie === "Pasados") {
+    if (selectedCategorie === i18n.t("concerts.categories.past")) {
       return (
         Boolean(concert.date) &&
         new Date(`${concert.date}T00:00:00`) < currentDate
@@ -131,13 +115,13 @@ export default function Concerts() {
         />
         <Text className="mt-3 text-center text-background">
           {favoriteConcerts.length === 0
-            ? "Aún no tienes conciertos guardados. Márcalos desde Explorar."
-            : "No hay conciertos en esta categoría."
+            ? i18n.t("concerts.emptyConcerts")
+            : i18n.t("concerts.emptyCategory")
           }  </Text>
       </View>
       <AddConcert children={
         <View className="flex flex-row items-center justify-center rounded-2xl bg-background px-4 py-2 mt-4">
-          <Text className="text-[#FFCD9F]">Añadir recordatorio</Text>
+          <Text className="text-[#FFCD9F]">{i18n.t("concerts.addReminder")}</Text>
           <MaterialIcons name="add" size={32} color="#FFCD9F" />
         </View>
       } onConcertAdded={refreshFavorites} />
@@ -147,10 +131,10 @@ export default function Concerts() {
   const listHeader = (
     <>
       <View className="flex-row items-center justify-between gap-3">
-        <Text className="flex-1 text-5xl font-bold text-background">Mis Conciertos</Text>
+        <Text className="flex-1 text-5xl font-bold text-background">{i18n.t("concerts.title")}</Text>
       </View>
       <Text className="text-xl text-[#A47148]">
-        Tus conciertos guardados, organizados por fecha.
+        {i18n.t("concerts.subtitle")}
       </Text>
       <View
         accessibilityRole="radiogroup"
@@ -186,7 +170,7 @@ export default function Concerts() {
       </View>
       <AddConcert children={
         <View className="flex-row items-center justify-center rounded-2xl bg-background px-3 py-2 mb-5">
-          <Text className="mr-1 font-semibold text-[#FFCD9F]">Añadir</Text>
+          <Text className="mr-1 font-semibold text-[#FFCD9F]">{i18n.t("concerts.addReminder")}</Text>
           <MaterialIcons name="add" size={24} color="#FFCD9F" />
         </View>
       } onConcertAdded={refreshFavorites} />
@@ -211,8 +195,8 @@ export default function Concerts() {
                 accessibilityRole="button"
                 accessibilityLabel={
                   notificationIds.includes(concert.id)
-                    ? `Desactivar notificación para ${concert.title}`
-                    : `Activar notificación para ${concert.title}`
+                    ? i18n.t("alerts.accessibilityLabelDisabled") + concert.title
+                    : i18n.t("alerts.accessibilityLabelActive") + concert.title
                 }
                 accessibilityState={{
                   selected: notificationIds.includes(concert.id),
@@ -234,7 +218,7 @@ export default function Concerts() {
             }
           />
         )}
-        
+
         ListHeaderComponent={listHeader}
         ListEmptyComponent={emptyMessage}
         initialNumToRender={6}

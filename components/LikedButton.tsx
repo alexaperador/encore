@@ -1,4 +1,5 @@
 import { Concert } from "@/lib/concerts";
+import { i18n } from "@/lib/i18n";
 import { MaterialIcons } from "@expo/vector-icons";
 import { Pressable } from "react-native";
 
@@ -15,7 +16,7 @@ export default function LikeButton({
         <Pressable
             accessibilityRole="button"
             accessibilityLabel={
-                isLiked ? "Quitar de favoritos" : "Añadir a favoritos"
+                isLiked ? i18n.t("concertcard.accessibilityLabelLiked") : i18n.t("concertcard.accessibilityLabelUnliked")
             }
             onPress={() => onToggle(concert)}
             hitSlop={8}

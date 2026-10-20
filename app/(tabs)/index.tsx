@@ -3,6 +3,7 @@ import ConcertCard from "@/components/ConcertCard";
 import ModalConcert from "@/components/ModalConcert";
 import { fetchConcerts, type Concert } from "@/lib/concerts";
 import { getFavoriteConcertIds, toggleFavoriteConcert } from "@/lib/favorites";
+import { i18n } from "@/lib/i18n";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
@@ -21,13 +22,13 @@ const CONCERTS_PER_PAGE = 20;
 
 export default function Explore() {
   const categories = [
-    { label: "Todos", icon: "apps" },
+    { label: i18n.t("explore.filter.all"), icon: "apps" },
     { label: "Pop", icon: "music-note" },
     { label: "Rock", icon: "album" },
     { label: "R&B", icon: "mic" },
     { label: "Latin", icon: "headphones" },
   ] as const;
-  const [selectedCategory, setSelectedCategory] = useState("Todos");
+  const [selectedCategory, setSelectedCategory] = useState(i18n.t("explore.filter.all"));
   const [concerts, setConcerts] = useState<Concert[]>([]);
   const [searchText, setSearchText] = useState("");
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
@@ -84,7 +85,7 @@ export default function Explore() {
   };
 
   const filteredItems =
-    selectedCategory === "Todos"
+    selectedCategory === i18n.t("explore.filter.all")
       ? concerts
       : concerts.filter((item) =>
         item.category.toLowerCase().includes(selectedCategory.toLowerCase()),
@@ -109,9 +110,9 @@ export default function Explore() {
   const listHeader = (
     <>
       <View>
-        <Text className="text-5xl font-bold text-background">Explorar</Text>
+        <Text className="text-5xl font-bold text-background">{i18n.t("explore.title")}</Text>
         <Text className="text-xl text-[#A47148]">
-          Descubre conciertos cerca de ti
+          {i18n.t("explore.subtitle")}
         </Text>
       </View>
       <View className="relative mt-4">
@@ -124,7 +125,7 @@ export default function Explore() {
         <View className="flex-row items-center rounded-2xl border border-[#6f4e3783] bg-background justify-between pr-10">
           <TextInput
             className="h-12 pl-12 w-full pr-4 text-white"
-            placeholder="Buscar conciertos"
+            placeholder={i18n.t("explore.search")}
             placeholderTextColor="#C9A27E"
             value={searchText}
             onChangeText={setSearchText}
@@ -141,7 +142,7 @@ export default function Explore() {
       </View>
       <View className="mt-5">
         <Text className="mb-2 text-xs font-semibold uppercase tracking-widest text-[#A47148]">
-          Filtrar por género
+          {i18n.t("explore.filterGenre")}
         </Text>
         <View className="flex-row flex-wrap gap-2 bg-background p-2 rounded-2xl">
           {categories.map((category) => {
@@ -174,9 +175,9 @@ export default function Explore() {
         </View>
       </View>
       <Text className="mt-5 pb-2 text-lg font-bold text-background">
-        {selectedCategory === "Todos"
-          ? "Próximos conciertos"
-          : `Conciertos de ${selectedCategory}`}
+        {selectedCategory === i18n.t("explore.filter.all")
+          ? i18n.t("explore.nextConcerts")
+          : i18n.t("explore.concertsOf") + selectedCategory}
       </Text>
     </>
   );
@@ -194,7 +195,7 @@ export default function Explore() {
     <View className="items-center px-6 py-12">
       <MaterialIcons name="event-busy" size={32} color="#A47148" />
       <Text className="mt-3 text-center text-background">
-        No hay conciertos disponibles en esta categoría.
+        {i18n.t("explore.emptyCategory")}
       </Text>
       <AddConcert />
     </View>
@@ -223,7 +224,7 @@ export default function Explore() {
             hasMoreConcerts ? (
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Mostrar más conciertos"
+              accessibilityLabel={i18n.t("explore.loadMoreConcerts")}
               disabled={isLoadingMore}
               onPress={loadMoreConcerts}
               className="mt-2 mb-4 flex-row items-center justify-center rounded-2xl bg-background px-5 py-3"
@@ -232,7 +233,7 @@ export default function Explore() {
                 <ActivityIndicator color="#F3E1CE" />
               ) : (
                 <>
-                  <Text className="font-semibold text-[#F3E1CE]">Mostrar más</Text>
+                  <Text className="font-semibold text-[#F3E1CE]">{i18n.t("explore.loadMoreConcerts")}</Text>
                   <MaterialIcons name="expand-more" size={20} color="#F3E1CE" />
                 </>
               )}

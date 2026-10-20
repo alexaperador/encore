@@ -1,6 +1,7 @@
 import { useState, ReactNode } from "react";
 import { Pressable } from "react-native";
 import ModalAddConcert from "./ModalAddConcert";
+import { i18n } from "@/lib/i18n";
 
 export default function AddConcert({
     children,
@@ -15,7 +16,7 @@ export default function AddConcert({
         <>
             <Pressable
                 accessibilityRole="button"
-                accessibilityLabel="Añadir recordatorio"
+                accessibilityLabel={i18n.t("concerts.addReminder")}
                 onPress={() => setIsVisible(true)}
             >
                 {children}

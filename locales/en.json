@@ -1,0 +1,141 @@
+{
+    "navbar": {
+        "explore": "Explore",
+        "concerts": "Concerts",
+        "alerts": "Alerts",
+        "settings": "Settings"
+    },
+    "concertcard": {
+        "accessibilityLabelLiked": "Add to favorites",
+        "accessibilityLabelUnliked": "Remove from favorites",
+        "dateNotAvailable": "Date not available",
+        "timing": {
+            "unknown": "Date to be confirmed",
+            "finishedDays": "Finished %{count} days ago",
+            "finishedDay": "Finished 1 day ago",
+            "today": "Today",
+            "tomorrow": "Tomorrow",
+            "inDays": "In %{count} days",
+            "inDay": "Tomorrow"
+        },
+        "fetchError": "Failed to load concerts"
+    },
+    "modalAddConcert": {
+        "title": "Add concert",
+        "subtitle": "Fill in the fields to add a new reminder.",
+        "close": "Close add concert",
+        "cover": "Cover",
+        "changeCover": "Change cover",
+        "chooseCover": "Choose cover",
+        "selectedCover": "Selected cover",
+        "chooseImage": "Choose an image",
+        "galleryHint": "Tap to open your gallery",
+        "concertInfo": "Concert information",
+        "artist": "Artist",
+        "artistPlaceholder": "Artist name",
+        "eventName": "Event name",
+        "eventNamePlaceholder": "E.g. The Baifo Tour",
+        "when": "When is it",
+        "date": "Date",
+        "changeDate": "Change date",
+        "hour": "Time",
+        "concertTime": "Concert time",
+        "hideTimePicker": "Hide time selector",
+        "showTimePicker": "Show time selector",
+        "hours": "Hour",
+        "minutes": "Min",
+        "increase": "Increase %{label}",
+        "decrease": "Decrease %{label}",
+        "location": "Location",
+        "city": "City",
+        "cityPlaceholder": "E.g. Barcelona",
+        "venue": "Venue",
+        "venuePlaceholder": "E.g. Palau Sant Jordi",
+        "save": "Save",
+        "permissionTitle": "Permission required",
+        "permissionMessage": "We need access to your photos to choose a cover.",
+        "missingDataTitle": "Missing information",
+        "missingDataMessage": "Complete the required fields to save the concert.",
+        "saveErrorTitle": "Could not save",
+        "saveErrorMessage": "Try again in a moment."
+    },
+    "explore": {
+        "title": "Explore",
+        "subtitle": "Discover concerts near you",
+        "search": "Search concerts",
+        "filterGenre": "Filter by genre",
+        "filter": {
+            "all": "All"
+        },
+        "nextConcerts": "Next concerts",
+        "concertsOf": "Concerts of ",
+        "emptyCategory": "No concerts available in this category.",
+        "loadMoreConcerts": "Load more concerts"
+    },
+    "concerts": {
+        "title": "My concerts",
+        "subtitle": "Your saved concerts, organized by date.",
+        "categories": {
+            "all": "All",
+            "past": "Past",
+            "upcoming": "Upcoming"
+        },
+        "addReminder": "Add reminder",
+        "emptyCategory": "There are no concerts in this category.",
+        "emptyConcerts": "You have no saved concerts. Mark them from Explore."
+    },
+    "alerts": {
+        "title": "My Alerts",
+        "subtitle": "Receive notifications about the concerts you don't want to miss.",
+        "empty": "You have no active alerts. Activate the bell on a concert to see it here.",
+        "reminderOptions": {
+            "30": {
+                "label": "30 days before"
+            },
+            "7": {
+                "label": "7 days before"
+            },
+            "1": {
+                "label": "1 day before"
+            },
+            "0": {
+                "label": "The same day"
+            }
+        },
+        "titleConfiguration": "Reminders Configuration",
+        "subtitleConfiguration": "Choose when you want to receive reminders for your concerts.",
+        "errorAlerts": "Failed to load your alerts.",
+        "accessibilityLabelActive": "Activate notification for ",
+        "accessibilityLabelDisabled": "Deactivate notification for "
+    },
+    "settings": {
+        "title": "Settings",
+        "subtitle": "Personalize your Encore experience",
+        "notifications": "Notifications",
+        "pushNotifications": "Push notifications",
+        "pushNotificationsDescription": "Receive updates about your concerts",
+        "enablePushNotifications": "Enable push notifications",
+        "reminders": "Reminders",
+        "remindersDescription": "We'll notify you before each event",
+        "enableReminders": "Enable reminders",
+        "preferences": "Preferences",
+        "information": "Information",
+        "language": "Language",
+        "appLanguage": "Application language",
+        "languageEnglish": "English",
+        "languageSpanish": "Spanish",
+        "changeLanguage": "Change language",
+        "close": "Close",
+        "country": "Preferred country",
+        "countryDescription": "Choose which country to show concerts from",
+        "spain": "Spain",
+        "darkMode": "Dark mode",
+        "darkModeDescription": "Adjust the Encore appearance",
+        "version": "Version",
+        "versionDescription": "Your current Encore version",
+        "about": "About the app",
+        "aboutDescription": "Learn more about Encore",
+        "seeMore": "See more",
+        "deleteReminders": "Delete all reminders"
+    }
+}

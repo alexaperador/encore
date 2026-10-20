@@ -1,5 +1,6 @@
 import type { Concert } from "@/lib/concerts";
 import { toggleFavoriteConcert } from "@/lib/favorites";
+import { i18n } from "@/lib/i18n";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
@@ -16,7 +17,7 @@ import {
     View,
 } from "react-native";
 import { Calendar } from "react-native-calendars";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 function toCalendarDate(date: Date) {
     const year = date.getFullYear();
@@ -38,6 +39,7 @@ export default function ModalAddConcert({
     onClose: () => void;
     onSaved?: () => void;
 }) {
+    const insets = useSafeAreaInsets();
 
     const [image, setImage] = useState<string | null>(null);
     const [artist, setArtist] = useState<string>("");
@@ -50,7 +52,7 @@ export default function ModalAddConcert({
     const [city, setCity] = useState<string>("");
     const [venue, setVenue] = useState<string>("");
 
-    const formattedDate = new Intl.DateTimeFormat("es-ES", {
+    const formattedDate = new Intl.DateTimeFormat(i18n.locale === "en" ? "en-US" : "es-ES", {
         day: "numeric",
         month: "long",
         year: "numeric",
@@ -91,8 +93,8 @@ export default function ModalAddConcert({
 
         if (!permissionResult.granted) {
             Alert.alert(
-                "Permiso necesario",
-                "Necesitamos acceso a tus fotos para elegir una portada.",
+                i18n.t("modalAddConcert.permissionTitle"),
+                i18n.t("modalAddConcert.permissionMessage"),
             );
             return;
         }
@@ -115,8 +117,8 @@ export default function ModalAddConcert({
 
         if (!trimmedArtist || !trimmedCity) {
             Alert.alert(
-                "Faltan datos",
-                "Completa los campos obligatorios para guardar el concierto.",
+                i18n.t("modalAddConcert.missingDataTitle"),
+                i18n.t("modalAddConcert.missingDataMessage"),
             );
             return;
         }
@@ -145,17 +147,26 @@ export default function ModalAddConcert({
             onClose();
         } catch {
             Alert.alert(
-                "No se pudo guardar",
-                "Inténtalo de nuevo dentro de un momento.",
+                i18n.t("modalAddConcert.saveErrorTitle"),
+                i18n.t("modalAddConcert.saveErrorMessage"),
             );
         }
     };
 
     return (
-        <Modal animationType="slide" visible onRequestClose={onClose}>
+        <Modal
+            animationType="slide"
+            statusBarTranslucent
+            visible
+            onRequestClose={onClose}
+        >
             <SafeAreaView
-                edges={["top"]}
-                style={{ flex: 1, backgroundColor: "#F8F1EA" }}
+                edges={[]}
+                style={{
+                    flex: 1,
+                    backgroundColor: "#F8F1EA",
+                    paddingTop: insets.top,
+                }}
             >
                 <KeyboardAvoidingView
                     behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -166,18 +177,18 @@ export default function ModalAddConcert({
                         keyboardShouldPersistTaps="handled"
                         showsVerticalScrollIndicator={false}
                     >
-                        <View className="flex-row items-center justify-between border-b border-[#EADACA] px-6 py-4">
+                        <View className="flex-row items-center justify-between border-b border-[#EADACA] px-6 pb-4 pt-4">
                             <View className="flex-1 pr-4">
                                 <Text className="text-2xl font-bold text-[#3E2C23]">
-                                    Añadir concierto
+                                    {i18n.t("modalAddConcert.title")}
                                 </Text>
                                 <Text className="mt-1 text-sm text-[#8A684E]">
-                                    Rellena los campos para añadir un nuevo recordatorio.
+                                    {i18n.t("modalAddConcert.subtitle")}
                                 </Text>
                             </View>
                             <Pressable
                                 accessibilityRole="button"
-                                accessibilityLabel="Cerrar añadir concierto"
+                                accessibilityLabel={i18n.t("modalAddConcert.close")}
                                 onPress={onClose}
                                 className="rounded-full bg-[#EADACA] p-2"
                             >
@@ -186,19 +197,19 @@ export default function ModalAddConcert({
                         </View>
                         <View className="px-6 pt-6">
                             <Text className="mb-3 text-xs font-bold uppercase tracking-widest text-[#8A684E]">
-                                Portada
+                                {i18n.t("modalAddConcert.cover")}
                             </Text>
                             <Pressable
                                 accessibilityRole="button"
-                                accessibilityLabel={image ? "Cambiar portada" : "Elegir portada"}
+                                accessibilityLabel={image ? i18n.t("modalAddConcert.changeCover") : i18n.t("modalAddConcert.chooseCover")}
                                 onPress={pickImage}
-                                className="h-52 overflow-hidden rounded-3xl border border-[#D9B99A] bg-[#EADACA]"
+                                className="h-80 overflow-hidden rounded-3xl w-full items-center border border-[#D9B99A] bg-[#EADACA]"
                             >
                                 {image ? (
                                     <Image
                                         source={{ uri: image }}
-                                        accessibilityLabel="Portada seleccionada"
-                                        className="h-full w-full"
+                                        accessibilityLabel={i18n.t("modalAddConcert.selectedCover")}
+                                        className="h-full w-80"
                                         resizeMode="cover"
                                     />
                                 ) : (
@@ -211,23 +222,23 @@ export default function ModalAddConcert({
                                             />
                                         </View>
                                         <Text className="mt-4 text-center text-base font-semibold text-[#3E2C23]">
-                                            Elige una imagen
+                                            {i18n.t("modalAddConcert.chooseImage")}
                                         </Text>
                                         <Text className="mt-1 text-center text-sm text-[#8A684E]">
-                                            Toca para abrir tu galería
+                                            {i18n.t("modalAddConcert.galleryHint")}
                                         </Text>
                                     </View>
                                 )}
                             </Pressable>
                             <Text className="mb-1 mt-8 text-xs font-bold uppercase tracking-widest text-[#8A684E]">
-                                Información del concierto
+                                {i18n.t("modalAddConcert.concertInfo")}
                             </Text>
                             <View className="mt-4">
                                 <Text className="mb-2 text-base font-semibold text-[#3E2C23]">
-                                    Artista *
+                                    {i18n.t("modalAddConcert.artist")} *
                                 </Text>
                                 <TextInput
-                                    placeholder="Nombre del artista"
+                                    placeholder={i18n.t("modalAddConcert.artistPlaceholder")}
                                     className="rounded-2xl border border-[#D9B99A] bg-[#EADACA] px-4 py-3  font-semibold text-[#3E2C23]"
                                     placeholderTextColor="#8A684E"
                                     onChangeText={(text) => {
@@ -238,10 +249,10 @@ export default function ModalAddConcert({
                             </View>
                             <View className="mt-5">
                                 <Text className="mb-2 text-base font-semibold text-[#3E2C23]">
-                                    Nombre del evento
+                                    {i18n.t("modalAddConcert.eventName")}
                                 </Text>
                                 <TextInput
-                                    placeholder="Ej: El Baifo Tour"
+                                    placeholder={i18n.t("modalAddConcert.eventNamePlaceholder")}
                                     placeholderTextColor="#8A684E"
                                     className="rounded-2xl border border-[#D9B99A] bg-[#EADACA] px-4 py-3 font-semibold text-[#3E2C23]"
                                     onChangeText={(text) => {
@@ -251,11 +262,11 @@ export default function ModalAddConcert({
                                 />
                             </View>
                             <Text className="mb-1 mt-8 text-xs font-bold uppercase tracking-widest text-[#8A684E]">
-                                Cuándo es
+                                {i18n.t("modalAddConcert.when")}
                             </Text>
                             <View className="mt-4">
                                 <Text className="mb-2 text-base font-semibold text-[#3E2C23]">
-                                    Fecha *
+                                    {i18n.t("modalAddConcert.date")} *
                                 </Text>
                                 <View className="overflow-hidden rounded-2xl border border-[#D9B99A] bg-[#EADACA]">
                                     <View className="flex-row items-center px-4 py-2">
@@ -265,7 +276,7 @@ export default function ModalAddConcert({
                                         </Text>
                                         <Pressable
                                             accessibilityRole="button"
-                                            accessibilityLabel="Cambiar fecha"
+                                            accessibilityLabel={i18n.t("modalAddConcert.changeDate")}
                                             onPress={() => setIsCalendarVisible(!isCalendarVisible)}
                                             className="ml-auto rounded-full bg-[#F8F1EA] p-2"
                                         >
@@ -311,13 +322,13 @@ export default function ModalAddConcert({
                             </View>
                             <View className="mt-6">
                                 <Text className="mb-2 text-base font-semibold text-[#3E2C23]">
-                                    Hora
+                                    {i18n.t("modalAddConcert.hour")}
                                 </Text>
                                 <View className="overflow-hidden rounded-2xl border border-[#D9B99A] bg-[#EADACA]">
                                     <View className="flex-row items-center px-4 py-2">
                                         <MaterialIcons name="schedule" size={20} color="#6F4E37" />
                                         <TextInput
-                                            accessibilityLabel="Hora del concierto"
+                                            accessibilityLabel={i18n.t("modalAddConcert.concertTime")}
                                             className="ml-3 flex-1 py-0  font-semibold text-[#3E2C23]"
                                             keyboardType="number-pad"
                                             maxLength={5}
@@ -332,7 +343,7 @@ export default function ModalAddConcert({
                                         />
                                         <Pressable
                                             accessibilityRole="button"
-                                            accessibilityLabel={isTimePickerVisible ? "Ocultar selector de hora" : "Mostrar selector de hora"}
+                                            accessibilityLabel={isTimePickerVisible ? i18n.t("modalAddConcert.hideTimePicker") : i18n.t("modalAddConcert.showTimePicker")}
                                             onPress={() => setIsTimePickerVisible((visible) => !visible)}
                                             className="rounded-full bg-[#F8F1EA] p-2"
                                         >
@@ -346,8 +357,8 @@ export default function ModalAddConcert({
                                     {isTimePickerVisible ? (
                                         <View className="flex-row justify-center gap-5 border-t border-[#D9B99A] px-6 py-4">
                                             {[
-                                                { label: "Hora", part: "hours" as const, value: time.getHours() },
-                                                { label: "Min", part: "minutes" as const, value: time.getMinutes() },
+                                                { label: i18n.t("modalAddConcert.hours"), part: "hours" as const, value: time.getHours() },
+                                                { label: i18n.t("modalAddConcert.minutes"), part: "minutes" as const, value: time.getMinutes() },
                                             ].map(({ label, part, value }) => (
                                                 <View key={part} className="items-center">
                                                     <Text className="mb-1 text-xs font-bold uppercase tracking-widest text-[#8A684E]">
@@ -355,7 +366,7 @@ export default function ModalAddConcert({
                                                     </Text>
                                                     <Pressable
                                                         accessibilityRole="button"
-                                                        accessibilityLabel={`Aumentar ${label.toLowerCase()}`}
+                                                        accessibilityLabel={i18n.t("modalAddConcert.increase", { label: label.toLowerCase() })}
                                                         onPress={() => changeTime(part, 1)}
                                                         className="rounded-full p-1"
                                                     >
@@ -368,7 +379,7 @@ export default function ModalAddConcert({
                                                     </View>
                                                     <Pressable
                                                         accessibilityRole="button"
-                                                        accessibilityLabel={`Reducir ${label.toLowerCase()}`}
+                                                        accessibilityLabel={i18n.t("modalAddConcert.decrease", { label: label.toLowerCase() })}
                                                         onPress={() => changeTime(part, -1)}
                                                         className="rounded-full p-1"
                                                     >
@@ -381,18 +392,18 @@ export default function ModalAddConcert({
                                 </View>
                             </View>
                             <Text className="mb-1 mt-8 text-xs font-bold uppercase tracking-widest text-[#8A684E]">
-                                Ubicación
+                                {i18n.t("modalAddConcert.location")}
                             </Text>
                             <View className="mt-6">
                                 <Text className="mb-2 text-base font-semibold text-[#3E2C23]">
-                                    Ciudad *
+                                    {i18n.t("modalAddConcert.city")} *
                                 </Text>
                                 <View className="flex-row items-center overflow-hidden rounded-2xl border border-[#D9B99A] bg-[#EADACA] px-4 py-3">
                                     <MaterialIcons name="location-city" size={20} color="#6F4E37" />
                                     <TextInput
-                                        accessibilityLabel="Ciudad del concierto"
+                                        accessibilityLabel={i18n.t("modalAddConcert.city")}
                                         className="ml-3 flex-1 py-1 font-semibold text-[#3E2C23]"
-                                        placeholder="Ej: Barcelona"
+                                        placeholder={i18n.t("modalAddConcert.cityPlaceholder")}
                                         placeholderTextColor="#8A684E"
                                         value={city}
                                         onChangeText={setCity}
@@ -401,14 +412,14 @@ export default function ModalAddConcert({
                             </View>
                             <View className="mt-6">
                                 <Text className="mb-2 text-base font-semibold text-[#3E2C23]">
-                                    Recinto
+                                    {i18n.t("modalAddConcert.venue")}
                                 </Text>
                                 <View className="flex-row items-center overflow-hidden rounded-2xl border border-[#D9B99A] bg-[#EADACA] px-4 py-3">
                                     <MaterialIcons name="place" size={20} color="#6F4E37" />
                                     <TextInput
-                                        accessibilityLabel="Recinto del concierto"
-                                        className="ml-3 flex-1 py-1 font-semibold text-[#3   E2C23]"
-                                        placeholder="Ej: Palau Sant Jordi"
+                                        accessibilityLabel={i18n.t("modalAddConcert.venue")}
+                                        className="ml-3 flex-1 py-1 font-semibold text-[#3E2C23]"
+                                        placeholder={i18n.t("modalAddConcert.venuePlaceholder")}
                                         placeholderTextColor="#8A684E"
                                         value={venue}
                                         onChangeText={setVenue}
@@ -419,12 +430,12 @@ export default function ModalAddConcert({
                         <View className="mt-10 px-6">
                             <Pressable
                                 accessibilityRole="button"
-                                accessibilityLabel="Guardar concierto"
+                                accessibilityLabel={i18n.t("modalAddConcert.save")}
                                 onPress={saveConcert}
                                 className="items-center rounded-2xl bg-[#6F4E37] px-6 py-3"
                             >
                                 <Text className="text-base font-bold text-[#F8F1EA]">
-                                    Guardar
+                                    {i18n.t("modalAddConcert.save")}
                                 </Text>
                             </Pressable>
                         </View>

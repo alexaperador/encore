@@ -1,3 +1,4 @@
+import { getStoredLanguage, setLanguage } from "@/lib/i18n";
 import "../global.css";
 
 import * as Notifications from 'expo-notifications';
@@ -14,7 +15,15 @@ Notifications.setNotificationHandler({
   }),
 });
 
+
 export default function RootLayout() {
+  useEffect(() => {
+    void getStoredLanguage().then((language) => {
+      if (language) {
+        setLanguage(language);
+      }
+    });
+  }, []);
   useEffect(() => {
     const notificationListener = Notifications.addNotificationReceivedListener(notification => {
       console.log(notification.request.content.title);
