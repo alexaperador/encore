@@ -28,6 +28,7 @@ function getQuery(request: IncomingMessage): ConcertQuery {
   return {
     keyword: url.searchParams.get("keyword")?.trim() || undefined,
     city: url.searchParams.get("city")?.trim() || undefined,
+    countryCode: url.searchParams.get("countryCode")?.trim() || undefined,
     category: url.searchParams.get("category")?.trim() || undefined,
     offset: Number(url.searchParams.get("offset") ?? 0),
     limit: Number(url.searchParams.get("limit") ?? 20),

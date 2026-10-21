@@ -1,8 +1,9 @@
 import ModalCountry from "@/components/ModalCountry";
 import ModalLanguage from "@/components/ModalLanguage";
+import { COUNTRIES, getStoredCountry, type CountryCode } from "@/lib/country";
 import { i18n, type Language } from "@/lib/i18n";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useState, type ComponentProps } from "react";
+import { useEffect, useState, type ComponentProps } from "react";
 import { Pressable, ScrollView, Switch, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -64,10 +65,18 @@ function SettingsContent() {
   const [darkModeEnabled, setDarkModeEnabled] = useState(false);
   const [isLanguageModalVisible, setLanguageModalVisible] = useState(false);
   const [isCountryModalVisible, setCountryModalVisible] = useState(false);
-  const [selectedCountry, setSelectedCountry] = useState<string>("Spain");
+  const [selectedCountry, setSelectedCountry] = useState<CountryCode>("ES");
   const [selectedLanguage, setSelectedLanguage] = useState<Language>(
     i18n.locale.startsWith("en") ? "en" : "es",
   );
+
+  useEffect(() => {
+    getStoredCountry().then(setSelectedCountry);
+  }, []);
+
+  const selectedCountryName = COUNTRIES.find(
+    (country) => country.code === selectedCountry,
+  )?.nameKey;
 
   return (
     <SafeAreaView className="flex-1" edges={["top"]}>
@@ -142,7 +151,9 @@ function SettingsContent() {
               className="rounded-2xl bg-[#FFCD9F] px-3 py-2 flex-row items-center"
               onPress={() => setCountryModalVisible(true)}
             >
-              <Text className="text-sm font-bold text-background">{i18n.t("settings.spain")}</Text>
+              <Text className="text-sm font-bold text-background">
+                {selectedCountryName ? i18n.t(selectedCountryName) : ""}
+              </Text>
               <MaterialIcons name="keyboard-arrow-down" size={20} color="#3E2C23" />
             </Pressable>
           </SettingRow>

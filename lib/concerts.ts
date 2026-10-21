@@ -23,6 +23,7 @@ const apiUrl = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:8787";
 export async function fetchConcerts(params?: {
   keyword?: string;
   city?: string;
+  countryCode?: string;
   category?: string;
   offset?: number;
   limit?: number;

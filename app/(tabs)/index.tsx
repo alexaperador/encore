@@ -1,7 +1,7 @@
 import AddConcert from "@/components/AddConcert";
 import ConcertCard from "@/components/ConcertCard";
-import ModalConcert from "@/components/ModalConcert";
 import { fetchConcerts, type Concert } from "@/lib/concerts";
+import { getStoredCountry, subscribeToCountry, type CountryCode } from "@/lib/country";
 import { getFavoriteConcertIds, toggleFavoriteConcert } from "@/lib/favorites";
 import { i18n } from "@/lib/i18n";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -10,11 +10,10 @@ import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
-  Image,
   Pressable,
   Text,
   TextInput,
-  View,
+  View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -28,7 +27,7 @@ export default function Explore() {
     { label: "R&B", icon: "mic" },
     { label: "Latin", icon: "headphones" },
   ] as const;
-  const [selectedCategory, setSelectedCategory] = useState(i18n.t("explore.filter.all"));
+  const [selectedCategory, setSelectedCategory] = useState(categories[0].label);
   const [concerts, setConcerts] = useState<Concert[]>([]);
   const [searchText, setSearchText] = useState("");
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
@@ -36,6 +35,14 @@ export default function Explore() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMoreConcerts, setHasMoreConcerts] = useState(true);
+  const [countryCode, setCountryCode] = useState<CountryCode>("ES");
+
+  useEffect(() => {
+    getStoredCountry().then(setCountryCode);
+    return subscribeToCountry(() => {
+      getStoredCountry().then(setCountryCode);
+    });
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -57,6 +64,7 @@ export default function Explore() {
       try {
         const results = await fetchConcerts({
           keyword: searchText.trim(),
+          countryCode,
           limit: CONCERTS_PER_PAGE,
           offset: 0,
         });
@@ -78,7 +86,7 @@ export default function Explore() {
       isCancelled = true;
       clearTimeout(timeout);
     };
-  }, [searchText]);
+  }, [countryCode, searchText]);
 
   const selectCategory = (category: string) => {
     setSelectedCategory(category);
@@ -97,6 +105,7 @@ export default function Explore() {
     try {
       const results = await fetchConcerts({
         keyword: searchText.trim(),
+        countryCode,
         limit: CONCERTS_PER_PAGE,
         offset: concerts.length,
       });

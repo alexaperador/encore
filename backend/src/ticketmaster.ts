@@ -54,6 +54,7 @@ export type Concert = {
 export type ConcertQuery = {
   keyword?: string;
   city?: string;
+  countryCode?: string;
   category?: string;
   offset?: number;
   limit?: number;
@@ -75,6 +76,7 @@ export async function searchConcerts(
 
   if (query.keyword) url.searchParams.set("keyword", query.keyword);
   if (query.city) url.searchParams.set("city", query.city);
+  if (query.countryCode) url.searchParams.set("countryCode", query.countryCode);
   if (query.category) {
     url.searchParams.set("classificationName", query.category);
   }
