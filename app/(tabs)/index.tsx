@@ -21,13 +21,13 @@ const CONCERTS_PER_PAGE = 20;
 
 export default function Explore() {
   const categories = [
-    { label: i18n.t("explore.filter.all"), icon: "apps" },
-    { label: "Pop", icon: "music-note" },
-    { label: "Rock", icon: "album" },
-    { label: "R&B", icon: "mic" },
-    { label: "Latin", icon: "headphones" },
+    { key: "all", label: i18n.t("explore.filter.all"), icon: "apps" },
+    { key: "Pop", label: "Pop", icon: "music-note" },
+    { key: "Rock", label: "Rock", icon: "album" },
+    { key: "R&B", label: "R&B", icon: "mic" },
+    { key: "Latin", label: "Latin", icon: "headphones" },
   ] as const;
-  const [selectedCategory, setSelectedCategory] = useState(categories[0].label);
+  const [selectedCategory, setSelectedCategory] = useState("all");
   const [concerts, setConcerts] = useState<Concert[]>([]);
   const [searchText, setSearchText] = useState("");
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
@@ -65,12 +65,13 @@ export default function Explore() {
         const results = await fetchConcerts({
           keyword: searchText.trim(),
           countryCode,
+          category: selectedCategory === "all" ? undefined : selectedCategory,
           limit: CONCERTS_PER_PAGE,
           offset: 0,
         });
         if (!isCancelled) {
           setConcerts(results);
-          setHasMoreConcerts(results.length === CONCERTS_PER_PAGE);
+          setHasMoreConcerts(results.length > 0);
         }
       } catch {
         if (!isCancelled) {
@@ -86,18 +87,16 @@ export default function Explore() {
       isCancelled = true;
       clearTimeout(timeout);
     };
-  }, [countryCode, searchText]);
+  }, [countryCode, searchText, selectedCategory]);
 
   const selectCategory = (category: string) => {
     setSelectedCategory(category);
   };
 
-  const filteredItems =
-    selectedCategory === i18n.t("explore.filter.all")
-      ? concerts
-      : concerts.filter((item) =>
-        item.category.toLowerCase().includes(selectedCategory.toLowerCase()),
-      );
+  const selectedCategoryLabel =
+    categories.find((category) => category.key === selectedCategory)?.label ??
+    categories[0].label;
+  const filteredItems = concerts;
   const loadMoreConcerts = async () => {
     if (isLoadingMore || !hasMoreConcerts) return;
 
@@ -106,6 +105,7 @@ export default function Explore() {
       const results = await fetchConcerts({
         keyword: searchText.trim(),
         countryCode,
+        category: selectedCategory === "all" ? undefined : selectedCategory,
         limit: CONCERTS_PER_PAGE,
         offset: concerts.length,
       });
@@ -155,14 +155,14 @@ export default function Explore() {
         </Text>
         <View className="flex-row flex-wrap gap-2 bg-background p-2 rounded-2xl">
           {categories.map((category) => {
-            const isSelected = selectedCategory === category.label;
+            const isSelected = selectedCategory === category.key;
 
             return (
               <Pressable
                 key={category.label}
                 accessibilityRole="radio"
                 accessibilityState={{ selected: isSelected }}
-                onPress={() => selectCategory(category.label)}
+                onPress={() => selectCategory(category.key)}
                 className={`w-[18%] items-center rounded-2xl p-2 ${isSelected ? "bg-[#6F4E37]" : ""}`}
               >
                 <MaterialIcons
@@ -184,9 +184,9 @@ export default function Explore() {
         </View>
       </View>
       <Text className="mt-5 pb-2 text-lg font-bold text-background">
-        {selectedCategory === i18n.t("explore.filter.all")
+        {selectedCategory === "all"
           ? i18n.t("explore.nextConcerts")
-          : i18n.t("explore.concertsOf") + selectedCategory}
+          : i18n.t("explore.concertsOf") + selectedCategoryLabel}
       </Text>
     </>
   );

@@ -3,6 +3,7 @@ import {
   formatConcertTiming,
   getConcertDaysRemaining,
 } from "@/lib/concerts";
+import { getFavoriteConcertIds } from "@/lib/favorites";
 import { getNotificationConcertIds, toggleConcertNotification } from "@/lib/notifications";
 import { shareConcert } from "@/lib/share";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -42,13 +43,18 @@ type ConcertAction = {
 export default function ModalConcert({
   concert,
   onClose,
+  isLiked,
 }: {
   concert: Concert;
   onClose: () => void;
+  isLiked?: boolean;
 }) {
   const daysRemaining = getConcertDaysRemaining(concert.date);
 
   const [notificationIds, setNotificationIds] = useState<string[]>([]);
+  const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
+
+  const canShowReminder = isLiked ?? favoriteIds.includes(concert.id);
 
   useFocusEffect(
     useCallback(() => {
@@ -56,11 +62,13 @@ export default function ModalConcert({
 
       Promise.all([
         getNotificationConcertIds(),
+        getFavoriteConcertIds(),
       ])
-        .then(([ids]) => {
+        .then(([ids, idsOfFavorites]) => {
           if (!isActive) return;
 
           setNotificationIds(ids);
+          setFavoriteIds(idsOfFavorites);
         })
         .catch(() => {
           if (!isActive) return;
@@ -161,7 +169,9 @@ export default function ModalConcert({
 
   const actions = [
     { label: "Añadir", icon: "calendar-month", onPress: addConcertToCalendar },
-    { label: "Recordatorio", icon: "notifications", onPress: toggleNotification },
+    ...(canShowReminder
+      ? [{ label: "Recordatorio", icon: "notifications" as const, onPress: toggleNotification }]
+      : []),
     { label: "Entradas", icon: "confirmation-number", onPress: openUrl },
     { label: "Compartir", icon: "ios-share", onPress: () => shareConcert(concert) },
   ] satisfies readonly ConcertAction[];
@@ -279,11 +289,16 @@ export default function ModalConcert({
               {daysRemaining !== null && daysRemaining >= 0 ? (
                 <View className="flex-row items-center justify-between">
                   <View>
-                    <Text className="text-sm font-semibold uppercase tracking-widest text-white/90">
-                      Quedan
-                    </Text>
+                    {
+                      daysRemaining === 0
+                        ? null
+                        : <Text className="text-sm font-semibold uppercase tracking-widest text-white/90">
+                          Quedan
+                        </Text>
+                    }
+
                     <Text className="mt-1 text-3xl font-bold text-white">
-                      {daysRemaining} {daysRemaining === 1 ? "día" : daysRemaining === 0 ? "hoy" : "días"}
+                      {daysRemaining === 1 ? `${daysRemaining} día` : daysRemaining === 0 ? "Hoy" : `${daysRemaining} días`}
                     </Text>
                   </View>
                   <MaterialIcons

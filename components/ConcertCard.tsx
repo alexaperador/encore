@@ -36,8 +36,12 @@ export default function ConcertCard({
         setFavoriteIds(nextFavoriteIds);
     };
 
+    const concertIsLiked = isLiked ?? favoriteIds.includes(concert.id);
+
     return (
         <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`${concert.artist || concert.title}, ${concert.city || ""}`}
             onPress={() => setSelectedConcert(concert)}
             className="mb-3 flex h-30 w-full flex-row gap-3 rounded-2xl bg-background"
         >
@@ -65,7 +69,7 @@ export default function ConcertCard({
                     </Text>
                     <LikeButton
                         concert={concert}
-                        isLiked={isLiked ?? favoriteIds.includes(concert.id)}
+                        isLiked={concertIsLiked}
                         onToggle={handleToggleFavorite}
                     />
                 </View>
@@ -76,7 +80,7 @@ export default function ConcertCard({
                 ) : null}
                 <Text className="text-xs text-shadow">
                     {concert.date
-                        ? new Date(concert.date).toLocaleString(i18n.locale === "en" ? "en-US" : "es-ES", {
+                        ? new Date(concert.date).toLocaleDateString(i18n.locale.startsWith("en") ? "en-US" : "es-ES", {
                             weekday: "long",
                             day: "2-digit",
                             month: "long",
@@ -111,6 +115,7 @@ export default function ConcertCard({
                 selectedConcert ? (
                     <ModalConcert
                         concert={selectedConcert}
+                        isLiked={concertIsLiked}
                         onClose={() => setSelectedConcert(null)}
                     />
                 ) : null
