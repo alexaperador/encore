@@ -1,4 +1,12 @@
-{
+{   "common": {
+        "cancel": "Cancelar",
+        "close": "Cerrar",
+        "save": "Guardar",
+        "delete": "Eliminar",
+        "confirm": "Confirmar",
+        "yes": "Sí",
+        "no": "No"
+    },
     "navbar": {
         "explore": "Explorar",
         "concerts": "Conciertos",
@@ -68,7 +76,7 @@
         },
         "nextConcerts": "Próximos conciertos",
         "concertsOf": "Conciertos de ",
-        "emptyCategory": " No hay conciertos disponibles en esta categoría.",
+        "emptyCategory": "No hay conciertos disponibles en esta categoría.",
         "loadMoreConcerts": "Mostrar más conciertos"
     },
     "concerts": {
@@ -86,7 +94,7 @@
     "alerts": {
         "title": "Mis Alertas",
         "subtitle": "Recibe avisos de los conciertos que no quieres perderte.",
-        "empty": "Aún no tienes alertas activas. Activa la campana en un concierto para verlo aquí.",
+        "emptyAlerts": "Aún no tienes alertas activas. Activa la campana en un concierto para verlo aquí.",
         "reminderOptions": {
             "30": {
                 "label": "30 días antes"
@@ -146,6 +154,17 @@
         "about": "Sobre la app",
         "aboutDescription": "Conoce más sobre Encore",
         "seeMore": "Ver más",
-        "deleteReminders": "Eliminar todos los recordatorios"
+        "aboutTagline": "Nunca te pierdas un concierto",
+        "aboutTitle": "Sobre Encore",
+        "aboutVersion": "Versión",
+        "developedBy": "Desarrollado por",
+        "technologies": "Tecnologías",
+        "privacy": "Privacidad",
+        "privacyDescription": "Tus datos se almacenan localmente en tu dispositivo.",
+        "openSource": "Licencias de código abierto",
+        "openSourceDescription": "Construida con herramientas de código abierto.",
+        "copyright": "© {year} Encore",
+        "deleteData": "Eliminar todos los datos",
+        "deleteDataConfirmation": "¿Estás seguro de que quieres eliminar todos los datos? Esta acción no se puede deshacer."
     }
 }

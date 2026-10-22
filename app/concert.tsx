@@ -1,4 +1,4 @@
-import ModalConcert from "@/components/ModalConcert";
+import ModalConcert from "@/components/modals/ModalConcert";
 import type { Concert } from "@/lib/concerts";
 import { router, useLocalSearchParams } from "expo-router";
 import { Text, View } from "react-native";

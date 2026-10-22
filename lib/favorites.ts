@@ -39,3 +39,14 @@ export async function toggleFavoriteConcert(
   await AsyncStorage.setItem(FAVORITES_KEY, JSON.stringify(nextFavorites));
   return nextFavorites.map((favorite) => favorite.id);
 }
+
+export const removeAppKeys = async () => {
+  try {
+    const keys = await AsyncStorage.getAllKeys()
+    console.log(`Keys: ${keys}`) // Just to see what's going on
+    await AsyncStorage.multiRemove(keys)
+  } catch (e) {
+    console.log(e)
+  }
+  console.log('Done')
+}

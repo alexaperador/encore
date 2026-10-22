@@ -168,12 +168,12 @@ export default function Concerts() {
           );
         })}
       </View>
-      <AddConcert children={
-        <View className="flex-row items-center justify-center rounded-2xl bg-background px-3 py-2 mb-5">
-          <Text className="mr-1 font-semibold text-[#FFCD9F]">{i18n.t("concerts.addReminder")}</Text>
-          <MaterialIcons name="add" size={24} color="#FFCD9F" />
+      {emptyMessage ? null : <AddConcert children={
+        <View className="flex flex-row items-center justify-center rounded-2xl bg-background px-4 py-2 mt-4">
+          <Text className="text-[#FFCD9F]">{i18n.t("concerts.addReminder")}</Text>
+          <MaterialIcons name="add" size={32} color="#FFCD9F" />
         </View>
-      } onConcertAdded={refreshFavorites} />
+      } onConcertAdded={refreshFavorites} />}
     </>
   );
 

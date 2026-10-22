@@ -1,4 +1,13 @@
 {
+    "common": {
+        "cancel": "Cancel",
+        "close": "Close",
+        "save": "Save",
+        "delete": "Delete",
+        "confirm": "Confirm",
+        "yes": "Yes",
+        "no": "No"
+    },
     "navbar": {
         "explore": "Explore",
         "concerts": "Concerts",
@@ -87,7 +96,7 @@
     "alerts": {
         "title": "My Alerts",
         "subtitle": "Receive notifications about the concerts you don't want to miss.",
-        "empty": "You have no active alerts. Activate the bell on a concert to see it here.",
+        "emptyAlerts": "You have no active alerts. Activate the bell on a concert to see it here.",
         "reminderOptions": {
             "30": {
                 "label": "30 days before"
@@ -147,6 +156,17 @@
         "about": "About the app",
         "aboutDescription": "Learn more about Encore",
         "seeMore": "See more",
-        "deleteReminders": "Delete all reminders"
+        "aboutTagline": "Never miss a concert",
+        "aboutTitle": "About Encore",
+        "aboutVersion": "Version",
+        "developedBy": "Developed by",
+        "technologies": "Technologies",
+        "privacy": "Privacy",
+        "privacyDescription": "Your data is stored locally on your device.",
+        "openSource": "Open-source licenses",
+        "openSourceDescription": "Built with open-source tools.",
+        "copyright": "© %{year} Encore",
+        "deleteData": "Delete all data",
+        "deleteDataConfirmation": "Are you sure you want to delete all data? This action cannot be undone."
     }
 }

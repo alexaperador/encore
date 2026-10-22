@@ -1,12 +1,12 @@
 import { Concert, formatConcertTiming } from "@/lib/concerts";
 import { getFavoriteConcertIds, toggleFavoriteConcert } from "@/lib/favorites";
+import { i18n } from "@/lib/i18n";
+import { shareConcert } from "@/lib/share";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 import { Image, Pressable, Text, View } from "react-native";
 import LikeButton from "./LikedButton";
-import ModalConcert from "./ModalConcert";
-import { shareConcert } from "@/lib/share";
-import { i18n } from "@/lib/i18n";
+import ModalConcert from "./modals/ModalConcert";
 
 export default function ConcertCard({
     concert,

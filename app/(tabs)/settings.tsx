@@ -1,11 +1,15 @@
-import ModalCountry from "@/components/ModalCountry";
-import ModalLanguage from "@/components/ModalLanguage";
+import ModalConfirm from "@/components/modals/ModalConfirm";
+import ModalCountry from "@/components/modals/ModalCountry";
+import ModalLanguage from "@/components/modals/ModalLanguage";
+import ModalAbout from "@/components/modals/ModalAbout";
 import { COUNTRIES, getStoredCountry, type CountryCode } from "@/lib/country";
+import { removeAppKeys } from "@/lib/favorites";
 import { i18n, type Language } from "@/lib/i18n";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useEffect, useState, type ComponentProps } from "react";
 import { Pressable, ScrollView, Switch, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import app from "../../app.json";
 
 type IconName = ComponentProps<typeof MaterialIcons>["name"];
 
@@ -65,6 +69,8 @@ function SettingsContent() {
   const [darkModeEnabled, setDarkModeEnabled] = useState(false);
   const [isLanguageModalVisible, setLanguageModalVisible] = useState(false);
   const [isCountryModalVisible, setCountryModalVisible] = useState(false);
+  const [isAboutModalVisible, setAboutModalVisible] = useState(false);
+  const [isDeleteRemindersModalVisible, setDeleteRemindersModalVisible] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState<CountryCode>("ES");
   const [selectedLanguage, setSelectedLanguage] = useState<Language>(
     i18n.locale.startsWith("en") ? "en" : "es",
@@ -179,7 +185,7 @@ function SettingsContent() {
             label={i18n.t("settings.version")}
             description={i18n.t("settings.versionDescription")}
           >
-            <Text className="text-sm font-semibold text-[#FFCD9F]">1.0.0</Text>
+            <Text className="text-sm font-semibold text-[#FFCD9F]">{app.expo.version}</Text>
           </SettingRow>
           <View className="ml-[68px] h-px bg-[#6F4E37]" />
           <SettingRow
@@ -190,9 +196,7 @@ function SettingsContent() {
             <Pressable
               accessibilityRole="button"
               className="rounded-2xl border border-[#A47148] px-3 py-2"
-              onPress={() => {
-                // Handle "See More" button press
-              }}
+              onPress={() => setAboutModalVisible(true)}
             >
               <Text className="text-sm font-bold text-[#FFCD9F]">{i18n.t("settings.seeMore")}</Text>
             </Pressable>
@@ -201,12 +205,13 @@ function SettingsContent() {
 
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={i18n.t("settings.deleteReminders")}
+          accessibilityLabel={i18n.t("settings.deleteData")}
           className="mt-8 flex-row items-center justify-center rounded-2xl bg-red-600 px-4 py-4"
+          onPress={() => setDeleteRemindersModalVisible(true)}
         >
           <MaterialIcons name="delete-outline" size={21} color="white" />
           <Text className="ml-2 text-sm font-semibold text-white">
-            {i18n.t("settings.deleteReminders")}
+            {i18n.t("settings.deleteData")}
           </Text>
         </Pressable>
       </ScrollView>
@@ -219,6 +224,19 @@ function SettingsContent() {
         isVisible={isCountryModalVisible}
         onClose={() => setCountryModalVisible(false)}
         onCountryChange={setSelectedCountry}
+      />
+      <ModalAbout
+        isVisible={isAboutModalVisible}
+        onClose={() => setAboutModalVisible(false)}
+      />
+      <ModalConfirm
+        isVisible={isDeleteRemindersModalVisible}
+        onClose={() => setDeleteRemindersModalVisible(false)}
+        onConfirm={() => {
+          removeAppKeys();
+        }}
+        title={i18n.t("settings.deleteData")}
+        message={i18n.t("settings.deleteDataConfirmation")}
       />
     </SafeAreaView>
   );

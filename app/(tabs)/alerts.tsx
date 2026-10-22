@@ -74,7 +74,7 @@ export default function Alerts() {
         .catch(() => {
           if (!isActive) return;
 
-          setErrorMessage(i18n.t("alerts.errorMessage"));
+          setErrorMessage(i18n.t("alerts.errorAlerts"));
           setIsNotificationsLoading(false);
         });
 
@@ -127,7 +127,7 @@ export default function Alerts() {
           color="#A47148"
         />
         <Text className="mt-3 text-center text-background">
-          {i18n.t("alerts.emptyMessage")}
+          {i18n.t("alerts.emptyAlerts")}
         </Text>
       </View>
     </View>

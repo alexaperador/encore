@@ -1,6 +1,6 @@
 import { useState, ReactNode } from "react";
 import { Pressable } from "react-native";
-import ModalAddConcert from "./ModalAddConcert";
+import ModalAddConcert from "./modals/ModalAddConcert";
 import { i18n } from "@/lib/i18n";
 
 export default function AddConcert({
