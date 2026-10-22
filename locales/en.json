@@ -15,8 +15,9 @@
         "settings": "Settings"
     },
     "concertcard": {
-        "accessibilityLabelLiked": "Add to favorites",
-        "accessibilityLabelUnliked": "Remove from favorites",
+        "accessibilityLabelLiked": "Remove from favorites",
+        "accessibilityLabelUnliked": "Add to favorites",
+        "accessibilityLabelShare": "Share %{title}",
         "dateNotAvailable": "Date not available",
         "timing": {
             "unknown": "Date to be confirmed",
@@ -25,9 +26,8 @@
             "today": "Today",
             "tomorrow": "Tomorrow",
             "inDays": "In %{count} days",
-            "inDay": "Tomorrow"
-        },
-        "fetchError": "Failed to load concerts"
+        "inDay": "Tomorrow"
+        }
     },
     "modalAddConcert": {
         "title": "Add concert",
@@ -91,7 +91,8 @@
         },
         "addReminder": "Add reminder",
         "emptyCategory": "There are no concerts in this category.",
-        "emptyConcerts": "You have no saved concerts. Mark them from Explore."
+        "emptyConcerts": "You have no saved concerts. Mark them from Explore.",
+        "fetchError": "Failed to load concerts"
     },
     "alerts": {
         "title": "My Alerts",
@@ -115,7 +116,66 @@
         "subtitleConfiguration": "Choose when you want to receive reminders for your concerts.",
         "errorAlerts": "Failed to load your alerts.",
         "accessibilityLabelActive": "Activate notification for ",
-        "accessibilityLabelDisabled": "Deactivate notification for "
+        "accessibilityLabelDisabled": "Deactivate notification for ",
+        "updateErrorTitle": "Could not update",
+        "updateErrorMessage": "This concert could not be updated. Please try again.",
+        "scheduleErrorTitle": "Could not set reminder",
+        "scheduleErrorMessage": "Check that the concert has a future date and notification permission is enabled.",
+        "enableReminder": "Enable %{reminder} reminders",
+        "disableReminder": "Disable %{reminder} reminders",
+        "reminderSwitchHint": "Choose when to receive concert reminders.",
+        "reminderPreferenceTitle": "Reminder preferences",
+        "reminderPreferenceError": "Keep at least one reminder time enabled. Turn off the bell on a concert to stop its reminders."
+    },
+    "notifications": {
+        "channelName": "Concert reminders",
+        "title": "Concert coming up!",
+        "reminderToday": "%{concert} is today!",
+        "reminderOneDay": "%{concert} is tomorrow!",
+        "reminderDays": "%{concert} is in %{count} days!"
+    },
+    "share": {
+        "dateToBeConfirmed": "Date to be confirmed",
+        "tickets": "Tickets",
+        "openInEncore": "View in Encore"
+    },
+    "concertDetail": {
+        "dateUnavailable": "Date not available",
+        "dateUnavailableTitle": "Date not available",
+        "dateUnavailableMessage": "This concert does not have a valid date.",
+        "calendarPermissionTitle": "Permission required",
+        "calendarPermissionMessage": "Allow calendar access to add this concert.",
+        "calendarUnavailableTitle": "Calendar unavailable",
+        "calendarUnavailableMessage": "No editable calendar was found on this device.",
+        "invalidDateTitle": "Invalid date",
+        "invalidDateMessage": "The calendar event could not be created.",
+        "calendarNote": "Added from Encore",
+        "addedTitle": "Added",
+        "addedMessage": "The concert was added to your calendar.",
+        "addErrorTitle": "Could not add concert",
+        "addErrorMessage": "An error occurred while creating the calendar event.",
+        "ticketsUnavailableTitle": "Tickets unavailable",
+        "ticketsUnavailableMessage": "This concert does not have a ticket link.",
+        "cannotOpenUrl": "Could not open URL: %{url}",
+        "actions": {
+            "add": "Add",
+            "reminder": "Reminder",
+            "tickets": "Tickets",
+            "share": "Share"
+        },
+        "closeDetails": "Close concert details",
+        "artistUnavailable": "Artist unavailable",
+        "titleUnavailable": "Title unavailable",
+        "dateAndTime": "Date and time",
+        "timeUnavailable": "Time unavailable",
+        "location": "Location",
+        "venueUnavailable": "Venue unavailable",
+        "cityUnavailable": "City unavailable",
+        "planExperience": "Plan your experience",
+        "remainingLabel": "Remaining",
+        "today": "Today",
+        "oneDayRemaining": "%{count} day",
+        "daysRemaining": "%{count} days"
     },
     "settings": {
         "title": "Settings",
@@ -167,6 +227,10 @@
         "openSourceDescription": "Built with open-source tools.",
         "copyright": "© %{year} Encore",
         "deleteData": "Delete all data",
-        "deleteDataConfirmation": "Are you sure you want to delete all data? This action cannot be undone."
+        "deleteDataConfirmation": "Are you sure you want to delete all data? This action cannot be undone.",
+        "deleteDataSuccessTitle": "Data deleted",
+        "deleteDataSuccessMessage": "Encore data and scheduled concert reminders were deleted from this device.",
+        "deleteDataErrorTitle": "Could not delete data",
+        "deleteDataErrorMessage": "Encore could not delete all local data. Please try again."
     }
 }

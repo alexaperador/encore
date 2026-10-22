@@ -2,17 +2,17 @@ import ConcertCard from "@/components/ConcertCard";
 import { Concert } from "@/lib/concerts";
 import { getFavoriteConcerts, toggleFavoriteConcert } from "@/lib/favorites";
 import {
-  cancelConcertNotifications,
   getNotificationConcertIds,
   getReminderPreferences,
   scheduleConcertNotifications,
-  toggleConcertNotification,
+  setConcertNotificationEnabled,
+  syncActiveConcertNotifications,
   toggleReminderPreference,
 } from "@/lib/notifications";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
-import { ActivityIndicator, FlatList, Pressable, Switch, Text, View } from "react-native";
+import { ActivityIndicator, Alert, FlatList, Pressable, Switch, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { i18n } from "@/lib/i18n";
 
@@ -70,6 +70,7 @@ export default function Alerts() {
             favorites.filter((concert) => ids.includes(concert.id)),
           );
           setIsNotificationsLoading(false);
+          void syncActiveConcertNotifications(favorites, reminders).catch(() => undefined);
         })
         .catch(() => {
           if (!isActive) return;
@@ -85,26 +86,37 @@ export default function Alerts() {
   );
 
   const handleToggleFavorite = async (concert: Concert) => {
-    const nextFavorites = favoriteConcerts.filter(
-      (favorite) => favorite.id !== concert.id,
-    );
-
-    setFavoriteConcerts(nextFavorites);
-    setAlertsConcerts((currentAlerts) =>
-      currentAlerts.filter((alert) => alert.id !== concert.id),
-    );
-    await toggleFavoriteConcert(concert);
+    try {
+      const nextFavoriteIds = await toggleFavoriteConcert(concert);
+      setFavoriteConcerts((currentFavorites) =>
+        currentFavorites.filter((favorite) => nextFavoriteIds.includes(favorite.id)),
+      );
+      setNotificationIds((currentIds) => currentIds.filter((id) => id !== concert.id));
+      setAlertsConcerts((currentAlerts) =>
+        currentAlerts.filter((alert) => alert.id !== concert.id),
+      );
+    } catch {
+      Alert.alert(
+        i18n.t("alerts.updateErrorTitle"),
+        i18n.t("alerts.updateErrorMessage"),
+      );
+    }
   };
 
   const handleToggleNotification = async (concert: Concert) => {
-    const nextNotificationIds = await toggleConcertNotification(concert.id);
-    setNotificationIds(nextNotificationIds);
-    if (nextNotificationIds.includes(concert.id)) {
-      await scheduleConcertNotifications(concert, activeReminders);
-    } else {
-      await cancelConcertNotifications(concert.id);
-      setAlertsConcerts((currentAlerts) =>
-        currentAlerts.filter((alert) => alert.id !== concert.id),
+    const enabled = notificationIds.includes(concert.id);
+    try {
+      const nextNotificationIds = await setConcertNotificationEnabled(concert, !enabled);
+      setNotificationIds(nextNotificationIds);
+      if (enabled) {
+        setAlertsConcerts((currentAlerts) =>
+          currentAlerts.filter((alert) => alert.id !== concert.id),
+        );
+      }
+    } catch {
+      Alert.alert(
+        i18n.t("alerts.scheduleErrorTitle"),
+        i18n.t("alerts.scheduleErrorMessage"),
       );
     }
   };
@@ -173,14 +185,32 @@ export default function Alerts() {
                 </Text>
               </View>
               <Switch
-                accessibilityLabel="Activar"
-                accessibilityHint="Toca para activar o desactivar las notificaciones"
+                accessibilityLabel={i18n.t(
+                  isActive ? "alerts.disableReminder" : "alerts.enableReminder",
+                  { reminder: reminder.title },
+                )}
+                accessibilityHint={i18n.t("alerts.reminderSwitchHint")}
                 value={isActive}
                 onValueChange={async () => {
-                  const nextReminders = await toggleReminderPreference(reminder.id);
-                  setActiveReminders(nextReminders);
-                  for (const concert of alertsConcerts) {
-                    await scheduleConcertNotifications(concert, nextReminders);
+                  if (isActive && activeReminders.length === 1) {
+                    Alert.alert(
+                      i18n.t("alerts.reminderPreferenceTitle"),
+                      i18n.t("alerts.reminderPreferenceError"),
+                    );
+                    return;
+                  }
+
+                  try {
+                    const nextReminders = await toggleReminderPreference(reminder.id);
+                    setActiveReminders(nextReminders);
+                    for (const concert of alertsConcerts) {
+                      await scheduleConcertNotifications(concert, nextReminders);
+                    }
+                  } catch {
+                    Alert.alert(
+                      i18n.t("alerts.scheduleErrorTitle"),
+                      i18n.t("alerts.scheduleErrorMessage"),
+                    );
                   }
                 }}
                 trackColor={{ false: "#6F4E37", true: "#A47148" }}

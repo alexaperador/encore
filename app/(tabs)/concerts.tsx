@@ -5,13 +5,14 @@ import { getFavoriteConcerts, toggleFavoriteConcert } from "@/lib/favorites";
 import { i18n } from "@/lib/i18n";
 import {
   getNotificationConcertIds,
-  toggleConcertNotification,
+  setConcertNotificationEnabled,
 } from "@/lib/notifications";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Pressable,
   Text,
@@ -20,7 +21,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Concerts() {
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [favoriteConcerts, setFavoriteConcerts] = useState<Concert[]>([]);
   const [notificationIds, setNotificationIds] = useState<string[]>([]);
   const [isFavoritesLoading, setIsFavoritesLoading] = useState(true);
@@ -61,13 +61,31 @@ export default function Concerts() {
       (favorite) => favorite.id !== concert.id,
     );
 
-    setFavoriteConcerts(nextFavorites);
-    await toggleFavoriteConcert(concert);
+    try {
+      await toggleFavoriteConcert(concert);
+      setFavoriteConcerts(nextFavorites);
+      setNotificationIds((currentIds) => currentIds.filter((id) => id !== concert.id));
+    } catch {
+      Alert.alert(
+        i18n.t("alerts.updateErrorTitle"),
+        i18n.t("alerts.updateErrorMessage"),
+      );
+    }
   };
 
   const handleToggleNotification = async (concert: Concert) => {
-    const nextNotificationIds = await toggleConcertNotification(concert.id);
-    setNotificationIds(nextNotificationIds);
+    try {
+      const nextNotificationIds = await setConcertNotificationEnabled(
+        concert,
+        !notificationIds.includes(concert.id),
+      );
+      setNotificationIds(nextNotificationIds);
+    } catch {
+      Alert.alert(
+        i18n.t("alerts.scheduleErrorTitle"),
+        i18n.t("alerts.scheduleErrorMessage"),
+      );
+    }
   };
 
   const selectCategory = (category: string) => {
@@ -99,11 +117,6 @@ export default function Concerts() {
   const emptyMessage = isFavoritesLoading ? (
     <View className="items-center py-12">
       <ActivityIndicator color="#3E2C23" />
-    </View>
-  ) : errorMessage ? (
-    <View className="items-center px-6 py-12">
-      <MaterialIcons name="cloud-off" size={32} color="#A47148" />
-      <Text className="mt-3 text-center text-background">{errorMessage}</Text>
     </View>
   ) : (
     <View className="items-center px-6 py-12 justify-center">
@@ -182,7 +195,7 @@ export default function Concerts() {
       <FlatList
         style={{ flex: 1 }}
         data={
-          isFavoritesLoading || errorMessage ? [] : visibleConcerts
+          isFavoritesLoading ? [] : visibleConcerts
         }
         keyExtractor={(concert) => concert.id}
         renderItem={({ item: concert }) => (

@@ -1,10 +1,12 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
+import { i18n } from "./i18n";
 import type { Concert } from "./concerts";
 
 const NOTIFICATIONS_KEY = "@encore/concert-notifications";
 const REMINDER_PREFERENCES_KEY = "@encore/reminder-preferences";
 const SCHEDULED_NOTIFICATIONS_KEY = "@encore/scheduled-notifications";
+const DEFAULT_REMINDER_PREFERENCES = ["1-day"];
 
 const REMINDER_DAYS: Record<string, number> = {
   "30-days": 30,
@@ -27,22 +29,6 @@ export async function getNotificationConcertIds(): Promise<string[]> {
   } catch {
     return [];
   }
-}
-
-export async function toggleConcertNotification(
-  concertId: string,
-): Promise<string[]> {
-  const notificationIds = await getNotificationConcertIds();
-  const nextNotificationIds = notificationIds.includes(concertId)
-    ? notificationIds.filter((id) => id !== concertId)
-    : [...notificationIds, concertId];
-
-  await AsyncStorage.setItem(
-    NOTIFICATIONS_KEY,
-    JSON.stringify(nextNotificationIds),
-  );
-
-  return nextNotificationIds;
 }
 
 async function getScheduledNotifications(): Promise<ScheduledNotifications> {
@@ -75,7 +61,7 @@ async function saveScheduledNotifications(
 
 async function ensureNotificationPermissions(): Promise<void> {
   await Notifications.setNotificationChannelAsync("concert-reminders", {
-    name: "Recordatorios de conciertos",
+    name: i18n.t("notifications.channelName"),
     importance: Notifications.AndroidImportance.DEFAULT,
     vibrationPattern: [0, 250, 250, 250],
     sound: "default",
@@ -84,7 +70,7 @@ async function ensureNotificationPermissions(): Promise<void> {
   const current = await Notifications.getPermissionsAsync();
   if (!current.granted) {
     const requested = await Notifications.requestPermissionsAsync();
-    if (!requested.granted) throw new Error("Las notificaciones están desactivadas.");
+    if (!requested.granted) throw new Error("notification-permission-denied");
   }
 }
 
@@ -105,26 +91,29 @@ function getReminderDate(concert: Concert, reminderId: string): Date | null {
 
   const reminderDate = new Date(concertDate);
   reminderDate.setDate(reminderDate.getDate() - daysBefore);
-  reminderDate.setTime(Date.now() + 10_000);
   return reminderDate;
 }
 
 function getNotificationBody(concert: Concert, reminderId: string): string {
-  const reminderText =
-    reminderId === "same-day"
-      ? "Es hoy"
-      : REMINDER_DAYS[reminderId] === 1
-      ? "Queda 1 día para"
-      : `Quedan ${REMINDER_DAYS[reminderId]} días para`;
-  const artist = concert.artist ? ` de ${concert.artist}` : "";
+  const concertName = concert.artist
+    ? `${concert.title} — ${concert.artist}`
+    : concert.title;
+  const daysBefore = REMINDER_DAYS[reminderId];
 
-  return `${reminderText} el concierto "${concert.title}"${artist}!`;
+  return i18n.t(
+    reminderId === "same-day"
+      ? "notifications.reminderToday"
+      : daysBefore === 1
+        ? "notifications.reminderOneDay"
+        : "notifications.reminderDays",
+    { concert: concertName, count: daysBefore },
+  );
 }
 
 export async function scheduleConcertNotifications(
   concert: Concert,
   reminderIds: string[],
-): Promise<void> {
+): Promise<number> {
   await cancelConcertNotifications(concert.id);
 
   const dates = reminderIds
@@ -134,14 +123,15 @@ export async function scheduleConcertNotifications(
         reminder.date !== null && reminder.date.getTime() > Date.now(),
     );
 
-  if (dates.length === 0) return;
+  if (dates.length === 0) return 0;
   await ensureNotificationPermissions();
 
-  const identifiers = await Promise.all(
-    dates.map(({ reminderId, date }) =>
-      Notifications.scheduleNotificationAsync({
+  const identifiers: string[] = [];
+  try {
+    for (const { reminderId, date } of dates) {
+      const identifier = await Notifications.scheduleNotificationAsync({
         content: {
-          title: "¡Concierto próximo!",
+          title: i18n.t("notifications.title"),
           body: getNotificationBody(concert, reminderId),
           data: { concertId: concert.id },
           sound: "default",
@@ -151,13 +141,35 @@ export async function scheduleConcertNotifications(
           date,
           channelId: "concert-reminders",
         },
-      }).then((identifier) => `${reminderId}:${identifier}`),
-    ),
-  );
+      });
+      identifiers.push(`${reminderId}:${identifier}`);
+    }
+  } catch (error) {
+    await Promise.all(
+      identifiers.map((entry) =>
+        Notifications.cancelScheduledNotificationAsync(
+          entry.split(":").slice(1).join(":"),
+        ),
+      ),
+    );
+    throw error;
+  }
 
   const scheduled = await getScheduledNotifications();
   scheduled[concert.id] = identifiers;
-  await saveScheduledNotifications(scheduled);
+  try {
+    await saveScheduledNotifications(scheduled);
+  } catch (error) {
+    await Promise.all(
+      identifiers.map((entry) =>
+        Notifications.cancelScheduledNotificationAsync(
+          entry.split(":").slice(1).join(":"),
+        ),
+      ),
+    );
+    throw error;
+  }
+  return identifiers.length;
 }
 
 export async function cancelConcertNotifications(concertId: string): Promise<void> {
@@ -174,17 +186,89 @@ export async function cancelConcertNotifications(concertId: string): Promise<voi
   await saveScheduledNotifications(scheduled);
 }
 
+export async function setConcertNotificationEnabled(
+  concert: Concert,
+  enabled: boolean,
+): Promise<string[]> {
+  const currentIds = await getNotificationConcertIds();
+
+  if (!enabled) {
+    await cancelConcertNotifications(concert.id);
+    const nextIds = currentIds.filter((id) => id !== concert.id);
+    await AsyncStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(nextIds));
+    return nextIds;
+  }
+
+  const reminders = await getReminderPreferences();
+  if (reminders.length === 0) throw new Error("no-reminder-preferences");
+
+  const scheduledCount = await scheduleConcertNotifications(concert, reminders);
+  if (scheduledCount === 0) throw new Error("no-future-reminders");
+
+  const nextIds = currentIds.includes(concert.id)
+    ? currentIds
+    : [...currentIds, concert.id];
+  try {
+    await AsyncStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(nextIds));
+  } catch (error) {
+    await cancelConcertNotifications(concert.id);
+    throw error;
+  }
+
+  return nextIds;
+}
+
+export async function cancelAllConcertNotifications(): Promise<void> {
+  await Notifications.cancelAllScheduledNotificationsAsync();
+  await Promise.all([
+    AsyncStorage.removeItem(NOTIFICATIONS_KEY),
+    AsyncStorage.removeItem(SCHEDULED_NOTIFICATIONS_KEY),
+  ]);
+}
+
+export async function syncActiveConcertNotifications(
+  concerts: Concert[],
+  reminderIds: string[],
+): Promise<void> {
+  const concertIds = new Set(concerts.map((concert) => concert.id));
+  const activeIds = await getNotificationConcertIds();
+  const orphanedIds = activeIds.filter((id) => !concertIds.has(id));
+
+  for (const concertId of orphanedIds) {
+    await cancelConcertNotifications(concertId);
+  }
+
+  const validActiveIds = activeIds.filter((id) => concertIds.has(id));
+  if (validActiveIds.length !== activeIds.length) {
+    await AsyncStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(validActiveIds));
+  }
+
+  if (validActiveIds.length === 0 || reminderIds.length === 0) return;
+
+  const permissions = await Notifications.getPermissionsAsync();
+  if (!permissions.granted) return;
+
+  for (const concert of concerts) {
+    if (validActiveIds.includes(concert.id)) {
+      await scheduleConcertNotifications(concert, reminderIds);
+    }
+  }
+}
+
 export async function getReminderPreferences(): Promise<string[]> {
   const stored = await AsyncStorage.getItem(REMINDER_PREFERENCES_KEY);
-  if (!stored) return [];
+  if (!stored) return DEFAULT_REMINDER_PREFERENCES;
 
   try {
     const parsed: unknown = JSON.parse(stored);
-    return Array.isArray(parsed)
-      ? parsed.filter((id): id is string => typeof id === "string")
-      : [];
+    if (!Array.isArray(parsed)) return DEFAULT_REMINDER_PREFERENCES;
+    const preferences = parsed.filter(
+      (id): id is string =>
+        typeof id === "string" && Object.hasOwn(REMINDER_DAYS, id),
+    );
+    return preferences.length > 0 ? preferences : DEFAULT_REMINDER_PREFERENCES;
   } catch {
-    return [];
+    return DEFAULT_REMINDER_PREFERENCES;
   }
 }
 
@@ -195,6 +279,10 @@ export async function toggleReminderPreference(
   const nextPreferences = preferences.includes(reminderId)
     ? preferences.filter((id) => id !== reminderId)
     : [...preferences, reminderId];
+
+  if (nextPreferences.length === 0) {
+    throw new Error("at-least-one-reminder-required");
+  }
 
   await AsyncStorage.setItem(
     REMINDER_PREFERENCES_KEY,

@@ -8,6 +8,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
+  Alert,
   ActivityIndicator,
   FlatList,
   Pressable,
@@ -51,8 +52,15 @@ export default function Explore() {
   );
 
   const handleToggleFavorite = async (concert: Concert) => {
-    const nextFavoriteIds = await toggleFavoriteConcert(concert);
-    setFavoriteIds(nextFavoriteIds);
+    try {
+      const nextFavoriteIds = await toggleFavoriteConcert(concert);
+      setFavoriteIds(nextFavoriteIds);
+    } catch {
+      Alert.alert(
+        i18n.t("alerts.updateErrorTitle"),
+        i18n.t("alerts.updateErrorMessage"),
+      );
+    }
   };
 
   useEffect(() => {
@@ -75,7 +83,7 @@ export default function Explore() {
         }
       } catch {
         if (!isCancelled) {
-          setErrorMessage("No se pudieron cargar los conciertos.");
+          setErrorMessage(i18n.t("concerts.fetchError"));
           setConcerts([]);
         }
       } finally {

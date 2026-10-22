@@ -1,15 +1,17 @@
 import { Share } from "react-native";
-import { Concert } from "./concerts";
+import { i18n } from "./i18n";
+import type { Concert } from "./concerts";
 
 export const shareConcert = async (concert: Concert) => {
+    const locale = i18n.locale.startsWith("en") ? "en-US" : "es-ES";
     const date = concert.date
-        ? new Date(`${concert.date}T00:00:00`).toLocaleDateString("es-ES", {
+        ? new Date(`${concert.date}T00:00:00`).toLocaleDateString(locale, {
             weekday: "long",
             day: "numeric",
             month: "long",
             year: "numeric",
         })
-        : "Fecha por confirmar";
+        : i18n.t("share.dateToBeConfirmed");
     const location = [concert.venue, concert.city]
         .filter(Boolean)
         .join(" · ");
@@ -17,7 +19,12 @@ export const shareConcert = async (concert: Concert) => {
         .filter(Boolean)
         .join("\n");
     const appLink = `encore://concert?data=${encodeURIComponent(JSON.stringify(concert))}`;
-    const message = `\uD83C\uDFB6 ${concert.title}\n${details}${concert.ticketUrl ? `\n\nEntradas: ${concert.ticketUrl}` : ""}\n\nVer en Encore: ${appLink}`;
+    const message = [
+        `\uD83C\uDFB6 ${concert.title}`,
+        details,
+        concert.ticketUrl ? `${i18n.t("share.tickets")}: ${concert.ticketUrl}` : null,
+        `${i18n.t("share.openInEncore")}: ${appLink}`,
+    ].filter(Boolean).join("\n\n");
 
     await Share.share({
         title: concert.title,

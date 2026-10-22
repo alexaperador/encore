@@ -98,7 +98,10 @@ export default function ConcertCard({
                         {children}
                         <Pressable
                             accessibilityRole="button"
-                            accessibilityLabel={`Compartir ${concert.title}`}
+                            accessibilityLabel={i18n.t(
+                                "concertcard.accessibilityLabelShare",
+                                { title: concert.title },
+                            )}
                             hitSlop={8}
                             onPress={(event) => {
                                 event.stopPropagation();

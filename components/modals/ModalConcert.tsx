@@ -4,7 +4,11 @@ import {
   getConcertDaysRemaining,
 } from "@/lib/concerts";
 import { getFavoriteConcertIds } from "@/lib/favorites";
-import { getNotificationConcertIds, toggleConcertNotification } from "@/lib/notifications";
+import {
+  getNotificationConcertIds,
+  setConcertNotificationEnabled,
+} from "@/lib/notifications";
+import { i18n } from "@/lib/i18n";
 import { shareConcert } from "@/lib/share";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as Calendar from "expo-calendar";
@@ -23,18 +27,22 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 function formatConcertDate(date: string | null) {
-  if (!date) return "Fecha no disponible";
+  if (!date) return i18n.t("concertDetail.dateUnavailable");
 
-  return new Intl.DateTimeFormat("es-ES", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  }).format(new Date(`${date}T00:00:00`));
+  return new Intl.DateTimeFormat(
+    i18n.locale.startsWith("en") ? "en-US" : "es-ES",
+    {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    },
+  ).format(new Date(`${date}T00:00:00`));
 }
 
 type MaterialIconName = keyof typeof MaterialIcons.glyphMap;
 
 type ConcertAction = {
+  id: "add" | "reminder" | "tickets" | "share";
   label: string;
   icon: MaterialIconName;
   onPress?: () => void;
@@ -82,7 +90,10 @@ export default function ModalConcert({
 
   const addConcertToCalendar = async () => {
     if (!concert.date) {
-      Alert.alert("Fecha no disponible", "Este concierto no tiene una fecha válida.");
+      Alert.alert(
+        i18n.t("concertDetail.dateUnavailableTitle"),
+        i18n.t("concertDetail.dateUnavailableMessage"),
+      );
       return;
     }
 
@@ -90,8 +101,8 @@ export default function ModalConcert({
       const { granted } = await Calendar.requestCalendarPermissions();
       if (!granted) {
         Alert.alert(
-          "Permiso necesario",
-          "Permite el acceso al calendario para añadir el concierto.",
+          i18n.t("concertDetail.calendarPermissionTitle"),
+          i18n.t("concertDetail.calendarPermissionMessage"),
         );
         return;
       }
@@ -101,8 +112,8 @@ export default function ModalConcert({
 
       if (!calendar) {
         Alert.alert(
-          "Calendario no disponible",
-          "No se encontró un calendario editable en este dispositivo.",
+          i18n.t("concertDetail.calendarUnavailableTitle"),
+          i18n.t("concertDetail.calendarUnavailableMessage"),
         );
         return;
       }
@@ -112,7 +123,10 @@ export default function ModalConcert({
       );
 
       if (Number.isNaN(startDate.getTime())) {
-        Alert.alert("Fecha no válida", "No se pudo crear el evento.");
+        Alert.alert(
+          i18n.t("concertDetail.invalidDateTitle"),
+          i18n.t("concertDetail.invalidDateMessage"),
+        );
         return;
       }
 
@@ -126,15 +140,18 @@ export default function ModalConcert({
         startDate,
         endDate,
         location: location || undefined,
-        notes: "Añadido desde Encore",
+        notes: i18n.t("concertDetail.calendarNote"),
         url: concert.ticketUrl ?? undefined,
       });
 
-      Alert.alert("Añadido", "El concierto se ha añadido a tu calendario.");
+      Alert.alert(
+        i18n.t("concertDetail.addedTitle"),
+        i18n.t("concertDetail.addedMessage"),
+      );
     } catch {
       Alert.alert(
-        "No se pudo añadir",
-        "Ha ocurrido un error al crear el evento en el calendario.",
+        i18n.t("concertDetail.addErrorTitle"),
+        i18n.t("concertDetail.addErrorMessage"),
       );
     }
   };
@@ -142,7 +159,10 @@ export default function ModalConcert({
   const openUrl = async () => {
     const url = concert.ticketUrl;
     if (!url) {
-      Alert.alert("URL no disponible", "Este concierto no tiene un enlace de entradas.");
+      Alert.alert(
+        i18n.t("concertDetail.ticketsUnavailableTitle"),
+        i18n.t("concertDetail.ticketsUnavailableMessage"),
+      );
       return;
     }
     const supported = await Linking.canOpenURL(url);
@@ -150,30 +170,55 @@ export default function ModalConcert({
     if (supported) {
       await Linking.openURL(url);
     } else {
-      Alert.alert(`No se puede abrir la URL: ${url}`);
+      Alert.alert(
+        i18n.t("concertDetail.cannotOpenUrl", { url }),
+      );
     }
   };
 
   const toggleNotification = async () => {
     try {
-      const nextNotificationIds = await toggleConcertNotification(concert.id);
+      const nextNotificationIds = await setConcertNotificationEnabled(
+        concert,
+        !notificationIds.includes(concert.id),
+      );
       setNotificationIds(nextNotificationIds);
     } catch {
       Alert.alert(
-        "No se pudo actualizar",
-        "No se ha podido cambiar el recordatorio.",
+        i18n.t("alerts.scheduleErrorTitle"),
+        i18n.t("alerts.scheduleErrorMessage"),
       );
     }
   };
 
 
   const actions = [
-    { label: "Añadir", icon: "calendar-month", onPress: addConcertToCalendar },
+    {
+      id: "add",
+      label: i18n.t("concertDetail.actions.add"),
+      icon: "calendar-month",
+      onPress: addConcertToCalendar,
+    },
     ...(canShowReminder
-      ? [{ label: "Recordatorio", icon: "notifications" as const, onPress: toggleNotification }]
+      ? [{
+          id: "reminder" as const,
+          label: i18n.t("concertDetail.actions.reminder"),
+          icon: "notifications" as const,
+          onPress: toggleNotification,
+        }]
       : []),
-    { label: "Entradas", icon: "confirmation-number", onPress: openUrl },
-    { label: "Compartir", icon: "ios-share", onPress: () => shareConcert(concert) },
+    {
+      id: "tickets",
+      label: i18n.t("concertDetail.actions.tickets"),
+      icon: "confirmation-number",
+      onPress: openUrl,
+    },
+    {
+      id: "share",
+      label: i18n.t("concertDetail.actions.share"),
+      icon: "ios-share",
+      onPress: () => shareConcert(concert),
+    },
   ] satisfies readonly ConcertAction[];
 
   return (
@@ -203,7 +248,7 @@ export default function ModalConcert({
             <View className="absolute inset-x-0 bottom-0" />
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Cerrar detalles"
+              accessibilityLabel={i18n.t("concertDetail.closeDetails")}
               onPress={onClose}
               className="absolute left-5 top-15 z-10 h-11 w-11 items-center justify-center rounded-full bg-black/35"
             >
@@ -211,10 +256,10 @@ export default function ModalConcert({
             </Pressable>
             <View className="absolute bottom-5 left-5 right-5">
               <Text className="text-3xl font-bold text-white" numberOfLines={2}>
-                {concert.artist ?? "Artista no disponible"}
+                {concert.artist || i18n.t("concertDetail.artistUnavailable")}
               </Text>
               <Text className="mt-1 text-base text-white/80" numberOfLines={1}>
-                {concert.title ?? "Título no disponible"}
+                {concert.title || i18n.t("concertDetail.titleUnavailable")}
               </Text>
             </View>
           </View>
@@ -226,13 +271,13 @@ export default function ModalConcert({
                 </View>
                 <View className="ml-3 flex-1">
                   <Text className="text-xs font-semibold uppercase tracking-wider text-[#9B7A62]">
-                    Fecha y hora
+                    {i18n.t("concertDetail.dateAndTime")}
                   </Text>
                   <Text className="mt-1 text-base font-semibold text-[#3E2C23]">
                     {formatConcertDate(concert.date)}
                   </Text>
                   <Text className="mt-0.5 text-sm text-[#3E2C23]/60">
-                    {concert.hour ?? "Hora no disponible"}
+                    {concert.hour ?? i18n.t("concertDetail.timeUnavailable")}
                   </Text>
                 </View>
               </View>
@@ -242,24 +287,24 @@ export default function ModalConcert({
                 </View>
                 <View className="ml-3 flex-1">
                   <Text className="text-xs font-semibold uppercase tracking-wider text-[#9B7A62]">
-                    Ubicación
+                    {i18n.t("concertDetail.location")}
                   </Text>
                   <Text className="mt-1 text-base font-semibold text-[#3E2C23]">
-                    {concert.venue ?? "Lugar no disponible"}
+                    {concert.venue ?? i18n.t("concertDetail.venueUnavailable")}
                   </Text>
                   <Text className="mt-0.5 text-sm text-[#3E2C23]/60">
-                    {concert.city ?? "Ciudad no disponible"}
+                    {concert.city ?? i18n.t("concertDetail.cityUnavailable")}
                   </Text>
                 </View>
               </View>
             </View>
             <Text className="mb-3 mt-6 text-xs font-bold uppercase tracking-[2px] text-[#9B7A62]">
-              Planifica tu experiencia
+              {i18n.t("concertDetail.planExperience")}
             </Text>
             <View className="flex-row gap-2">
               {actions.map((action) => (
                 <Pressable
-                  key={action.label}
+                  key={action.id}
                   accessibilityRole="button"
                   accessibilityLabel={action.label}
                   onPress={action.onPress}
@@ -269,7 +314,7 @@ export default function ModalConcert({
                   <View className="h-9 w-9 items-center justify-center rounded-full bg-[#F3E7DB]">
                     <MaterialIcons
                       name={
-                        action.label === "Recordatorio"
+                        action.id === "reminder"
                           ? notificationIds.includes(concert.id)
                             ? "notifications-active"
                             : "notifications-none"
@@ -289,16 +334,21 @@ export default function ModalConcert({
               {daysRemaining !== null && daysRemaining >= 0 ? (
                 <View className="flex-row items-center justify-between">
                   <View>
-                    {
-                      daysRemaining === 0
-                        ? null
-                        : <Text className="text-sm font-semibold uppercase tracking-widest text-white/90">
-                          Quedan
-                        </Text>
-                    }
+                    {daysRemaining === 0 ? null : (
+                      <Text className="text-sm font-semibold uppercase tracking-widest text-white/90">
+                        {i18n.t("concertDetail.remainingLabel")}
+                      </Text>
+                    )}
 
                     <Text className="mt-1 text-3xl font-bold text-white">
-                      {daysRemaining === 1 ? `${daysRemaining} día` : daysRemaining === 0 ? "Hoy" : `${daysRemaining} días`}
+                      {daysRemaining === 0
+                        ? i18n.t("concertDetail.today")
+                        : i18n.t(
+                            daysRemaining === 1
+                              ? "concertDetail.oneDayRemaining"
+                              : "concertDetail.daysRemaining",
+                            { count: daysRemaining },
+                          )}
                     </Text>
                   </View>
                   <MaterialIcons

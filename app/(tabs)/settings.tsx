@@ -3,11 +3,11 @@ import ModalCountry from "@/components/modals/ModalCountry";
 import ModalLanguage from "@/components/modals/ModalLanguage";
 import ModalAbout from "@/components/modals/ModalAbout";
 import { COUNTRIES, getStoredCountry, type CountryCode } from "@/lib/country";
-import { removeAppKeys } from "@/lib/favorites";
+import { clearEncoreData } from "@/lib/favorites";
 import { i18n, type Language } from "@/lib/i18n";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useEffect, useState, type ComponentProps } from "react";
-import { Pressable, ScrollView, Switch, Text, View } from "react-native";
+import { Alert, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import app from "../../app.json";
 
@@ -64,8 +64,6 @@ export default function Settings() {
 }
 
 function SettingsContent() {
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [reminderAlertsEnabled, setReminderAlertsEnabled] = useState(true);
   const [isLanguageModalVisible, setLanguageModalVisible] = useState(false);
   const [isCountryModalVisible, setCountryModalVisible] = useState(false);
   const [isAboutModalVisible, setAboutModalVisible] = useState(false);
@@ -188,7 +186,19 @@ function SettingsContent() {
         isVisible={isDeleteRemindersModalVisible}
         onClose={() => setDeleteRemindersModalVisible(false)}
         onConfirm={() => {
-          removeAppKeys();
+          void clearEncoreData()
+            .then(() => {
+              Alert.alert(
+                i18n.t("settings.deleteDataSuccessTitle"),
+                i18n.t("settings.deleteDataSuccessMessage"),
+              );
+            })
+            .catch(() => {
+              Alert.alert(
+                i18n.t("settings.deleteDataErrorTitle"),
+                i18n.t("settings.deleteDataErrorMessage"),
+              );
+            });
         }}
         title={i18n.t("settings.deleteData")}
         message={i18n.t("settings.deleteDataConfirmation")}

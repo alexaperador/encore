@@ -1,4 +1,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  cancelAllConcertNotifications,
+  setConcertNotificationEnabled,
+} from "./notifications";
 import type { Concert } from "./concerts";
 
 const FAVORITES_KEY = "@encore/favorite-concerts";
@@ -32,7 +36,12 @@ export async function toggleFavoriteConcert(
   concert: Concert,
 ): Promise<string[]> {
   const favorites = await getFavoriteConcerts();
-  const nextFavorites = favorites.some((favorite) => favorite.id === concert.id)
+  const isFavorite = favorites.some((favorite) => favorite.id === concert.id);
+  if (isFavorite) {
+    await setConcertNotificationEnabled(concert, false);
+  }
+
+  const nextFavorites = isFavorite
     ? favorites.filter((favorite) => favorite.id !== concert.id)
     : [...favorites, concert];
 
@@ -40,13 +49,10 @@ export async function toggleFavoriteConcert(
   return nextFavorites.map((favorite) => favorite.id);
 }
 
-export const removeAppKeys = async () => {
-  try {
-    const keys = await AsyncStorage.getAllKeys()
-    console.log(`Keys: ${keys}`) // Just to see what's going on
-    await AsyncStorage.multiRemove(keys)
-  } catch (e) {
-    console.log(e)
-  }
-  console.log('Done')
+export async function clearEncoreData(): Promise<void> {
+  await cancelAllConcertNotifications();
+
+  const keys = await AsyncStorage.getAllKeys();
+  const encoreKeys = keys.filter((key) => key.startsWith("@encore/"));
+  if (encoreKeys.length > 0) await AsyncStorage.multiRemove(encoreKeys);
 }
