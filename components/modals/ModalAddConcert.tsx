@@ -5,6 +5,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
 import {
+    ActivityIndicator,
     Alert,
     Image,
     KeyboardAvoidingView,
@@ -51,6 +52,7 @@ export default function ModalAddConcert({
     const [isTimePickerVisible, setIsTimePickerVisible] = useState(false);
     const [city, setCity] = useState<string>("");
     const [venue, setVenue] = useState<string>("");
+    const [isSaving, setIsSaving] = useState(false);
 
     const formattedDate = new Intl.DateTimeFormat(i18n.locale === "en" ? "en-US" : "es-ES", {
         day: "numeric",
@@ -112,6 +114,8 @@ export default function ModalAddConcert({
     };
 
     const saveConcert = async () => {
+        if (isSaving) return;
+
         const trimmedArtist = artist.trim();
         const trimmedCity = city.trim();
 
@@ -141,11 +145,13 @@ export default function ModalAddConcert({
             },
         };
 
+        setIsSaving(true);
         try {
             await toggleFavoriteConcert(concert);
             onSaved?.();
             onClose();
         } catch {
+            setIsSaving(false);
             Alert.alert(
                 i18n.t("modalAddConcert.saveErrorTitle"),
                 i18n.t("modalAddConcert.saveErrorMessage"),
@@ -431,12 +437,17 @@ export default function ModalAddConcert({
                             <Pressable
                                 accessibilityRole="button"
                                 accessibilityLabel={i18n.t("modalAddConcert.save")}
+                                disabled={isSaving}
                                 onPress={saveConcert}
-                                className="items-center rounded-2xl bg-[#6F4E37] px-6 py-3"
+                                className={`min-h-12 items-center justify-center rounded-2xl bg-[#6F4E37] px-6 py-3 ${isSaving ? "opacity-70" : ""}`}
                             >
-                                <Text className="text-base font-bold text-[#F8F1EA]">
-                                    {i18n.t("modalAddConcert.save")}
-                                </Text>
+                                {isSaving ? (
+                                    <ActivityIndicator color="#F8F1EA" />
+                                ) : (
+                                    <Text className="text-base font-bold text-[#F8F1EA]">
+                                        {i18n.t("modalAddConcert.save")}
+                                    </Text>
+                                )}
                             </Pressable>
                         </View>
                     </ScrollView>

@@ -4,10 +4,9 @@ import { getFavoriteConcerts, toggleFavoriteConcert } from "@/lib/favorites";
 import {
   getNotificationConcertIds,
   getReminderPreferences,
-  scheduleConcertNotifications,
   setConcertNotificationEnabled,
+  setReminderPreference,
   syncActiveConcertNotifications,
-  toggleReminderPreference,
 } from "@/lib/notifications";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
@@ -24,6 +23,7 @@ export default function Alerts() {
   const [favoriteConcerts, setFavoriteConcerts] = useState<Concert[]>([]);
   const [notificationIds, setNotificationIds] = useState<string[]>([]);
   const [activeReminders, setActiveReminders] = useState<string[]>([]);
+  const [isUpdatingReminders, setIsUpdatingReminders] = useState(false);
 
   const reminderOptions = [
     {
@@ -191,8 +191,10 @@ export default function Alerts() {
                 )}
                 accessibilityHint={i18n.t("alerts.reminderSwitchHint")}
                 value={isActive}
-                onValueChange={async () => {
-                  if (isActive && activeReminders.length === 1) {
+                disabled={isUpdatingReminders}
+                onValueChange={async (enabled) => {
+                  if (enabled === isActive || isUpdatingReminders) return;
+                  if (!enabled && activeReminders.length === 1) {
                     Alert.alert(
                       i18n.t("alerts.reminderPreferenceTitle"),
                       i18n.t("alerts.reminderPreferenceError"),
@@ -200,17 +202,21 @@ export default function Alerts() {
                     return;
                   }
 
+                  setIsUpdatingReminders(true);
                   try {
-                    const nextReminders = await toggleReminderPreference(reminder.id);
+                    const nextReminders = await setReminderPreference(
+                      reminder.id,
+                      enabled,
+                      alertsConcerts,
+                    );
                     setActiveReminders(nextReminders);
-                    for (const concert of alertsConcerts) {
-                      await scheduleConcertNotifications(concert, nextReminders);
-                    }
                   } catch {
                     Alert.alert(
                       i18n.t("alerts.scheduleErrorTitle"),
                       i18n.t("alerts.scheduleErrorMessage"),
                     );
+                  } finally {
+                    setIsUpdatingReminders(false);
                   }
                 }}
                 trackColor={{ false: "#6F4E37", true: "#A47148" }}

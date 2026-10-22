@@ -16,6 +16,16 @@ const REMINDER_DAYS: Record<string, number> = {
 };
 
 type ScheduledNotifications = Record<string, string[]>;
+let notificationMutationQueue: Promise<void> = Promise.resolve();
+
+function enqueueNotificationMutation<T>(operation: () => Promise<T>): Promise<T> {
+  const result = notificationMutationQueue.then(operation, operation);
+  notificationMutationQueue = result.then(
+    () => undefined,
+    () => undefined,
+  );
+  return result;
+}
 
 export async function getNotificationConcertIds(): Promise<string[]> {
   const stored = await AsyncStorage.getItem(NOTIFICATIONS_KEY);
@@ -180,7 +190,16 @@ export async function cancelConcertNotifications(concertId: string): Promise<voi
   await saveScheduledNotifications(scheduled);
 }
 
-export async function setConcertNotificationEnabled(
+export function setConcertNotificationEnabled(
+  concert: Concert,
+  enabled: boolean,
+): Promise<string[]> {
+  return enqueueNotificationMutation(() =>
+    updateConcertNotificationEnabled(concert, enabled),
+  );
+}
+
+async function updateConcertNotificationEnabled(
   concert: Concert,
   enabled: boolean,
 ): Promise<string[]> {
@@ -212,41 +231,45 @@ export async function setConcertNotificationEnabled(
   return nextIds;
 }
 
-export async function cancelAllConcertNotifications(): Promise<void> {
-  await Notifications.cancelAllScheduledNotificationsAsync();
-  await Promise.all([
-    AsyncStorage.removeItem(NOTIFICATIONS_KEY),
-    AsyncStorage.removeItem(SCHEDULED_NOTIFICATIONS_KEY),
-  ]);
+export function cancelAllConcertNotifications(): Promise<void> {
+  return enqueueNotificationMutation(async () => {
+    await Notifications.cancelAllScheduledNotificationsAsync();
+    await Promise.all([
+      AsyncStorage.removeItem(NOTIFICATIONS_KEY),
+      AsyncStorage.removeItem(SCHEDULED_NOTIFICATIONS_KEY),
+    ]);
+  });
 }
 
-export async function syncActiveConcertNotifications(
+export function syncActiveConcertNotifications(
   concerts: Concert[],
   reminderIds: string[],
 ): Promise<void> {
-  const concertIds = new Set(concerts.map((concert) => concert.id));
-  const activeIds = await getNotificationConcertIds();
-  const orphanedIds = activeIds.filter((id) => !concertIds.has(id));
+  return enqueueNotificationMutation(async () => {
+    const concertIds = new Set(concerts.map((concert) => concert.id));
+    const activeIds = await getNotificationConcertIds();
+    const orphanedIds = activeIds.filter((id) => !concertIds.has(id));
 
-  for (const concertId of orphanedIds) {
-    await cancelConcertNotifications(concertId);
-  }
-
-  const validActiveIds = activeIds.filter((id) => concertIds.has(id));
-  if (validActiveIds.length !== activeIds.length) {
-    await AsyncStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(validActiveIds));
-  }
-
-  if (validActiveIds.length === 0 || reminderIds.length === 0) return;
-
-  const permissions = await Notifications.getPermissionsAsync();
-  if (!permissions.granted) return;
-
-  for (const concert of concerts) {
-    if (validActiveIds.includes(concert.id)) {
-      await scheduleConcertNotifications(concert, reminderIds);
+    for (const concertId of orphanedIds) {
+      await cancelConcertNotifications(concertId);
     }
-  }
+
+    const validActiveIds = activeIds.filter((id) => concertIds.has(id));
+    if (validActiveIds.length !== activeIds.length) {
+      await AsyncStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(validActiveIds));
+    }
+
+    if (validActiveIds.length === 0 || reminderIds.length === 0) return;
+
+    const permissions = await Notifications.getPermissionsAsync();
+    if (!permissions.granted) return;
+
+    for (const concert of concerts) {
+      if (validActiveIds.includes(concert.id)) {
+        await scheduleConcertNotifications(concert, reminderIds);
+      }
+    }
+  });
 }
 
 export async function getReminderPreferences(): Promise<string[]> {
@@ -266,22 +289,57 @@ export async function getReminderPreferences(): Promise<string[]> {
   }
 }
 
-export async function toggleReminderPreference(
+export function setReminderPreference(
   reminderId: string,
+  enabled: boolean,
+  concerts: Concert[],
 ): Promise<string[]> {
-  const preferences = await getReminderPreferences();
-  const nextPreferences = preferences.includes(reminderId)
-    ? preferences.filter((id) => id !== reminderId)
-    : [...preferences, reminderId];
+  return enqueueNotificationMutation(async () => {
+    if (!Object.hasOwn(REMINDER_DAYS, reminderId)) {
+      throw new Error("unknown-reminder-preference");
+    }
 
-  if (nextPreferences.length === 0) {
-    throw new Error("at-least-one-reminder-required");
-  }
+    const preferences = await getReminderPreferences();
+    const nextPreferences = enabled
+      ? preferences.includes(reminderId)
+        ? preferences
+        : [...preferences, reminderId]
+      : preferences.filter((id) => id !== reminderId);
 
-  await AsyncStorage.setItem(
-    REMINDER_PREFERENCES_KEY,
-    JSON.stringify(nextPreferences),
-  );
+    if (nextPreferences.length === 0) {
+      throw new Error("at-least-one-reminder-required");
+    }
+    if (nextPreferences.length === preferences.length &&
+      nextPreferences.every((id) => preferences.includes(id))) {
+      return preferences;
+    }
 
-  return nextPreferences;
+    await AsyncStorage.setItem(
+      REMINDER_PREFERENCES_KEY,
+      JSON.stringify(nextPreferences),
+    );
+
+    try {
+      for (const concert of concerts) {
+        await scheduleConcertNotifications(concert, nextPreferences);
+      }
+    } catch (error) {
+      await AsyncStorage.setItem(
+        REMINDER_PREFERENCES_KEY,
+        JSON.stringify(preferences),
+      );
+
+      for (const concert of concerts) {
+        try {
+          await scheduleConcertNotifications(concert, preferences);
+        } catch {
+          // Keep the stored preference consistent; the next focus sync will retry scheduling.
+        }
+      }
+
+      throw error;
+    }
+
+    return nextPreferences;
+  });
 }

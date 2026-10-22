@@ -187,18 +187,6 @@ function SettingsContent() {
         onClose={() => setDeleteRemindersModalVisible(false)}
         onConfirm={() => {
           void clearEncoreData()
-            .then(() => {
-              Alert.alert(
-                i18n.t("settings.deleteDataSuccessTitle"),
-                i18n.t("settings.deleteDataSuccessMessage"),
-              );
-            })
-            .catch(() => {
-              Alert.alert(
-                i18n.t("settings.deleteDataErrorTitle"),
-                i18n.t("settings.deleteDataErrorMessage"),
-              );
-            });
         }}
         title={i18n.t("settings.deleteData")}
         message={i18n.t("settings.deleteDataConfirmation")}

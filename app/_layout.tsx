@@ -1,8 +1,9 @@
 import { getStoredLanguage, setLanguage } from "@/lib/i18n";
+import { getFavoriteConcerts } from "@/lib/favorites";
 import "../global.css";
 
 import * as Notifications from 'expo-notifications';
-import { Stack } from "expo-router";
+import { router, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 
@@ -25,16 +26,56 @@ export default function RootLayout() {
     });
   }, []);
   useEffect(() => {
-    const notificationListener = Notifications.addNotificationReceivedListener(notification => {
-      console.log(notification.request.content.title);
-    });
+    let isActive = true;
+    let lastHandledKey = "";
+    let lastHandledAt = 0;
 
-    const responseListener = Notifications.addNotificationResponseReceivedListener(response => {
-      console.log(response);
-    });
+    const handleNotificationResponse = async (
+      response: Notifications.NotificationResponse,
+    ) => {
+      const key = `${response.notification.request.identifier}:${response.actionIdentifier}`;
+      const now = Date.now();
+      if (key === lastHandledKey && now - lastHandledAt < 1_500) return;
+      lastHandledKey = key;
+      lastHandledAt = now;
+
+      try {
+        if (response.actionIdentifier !== Notifications.DEFAULT_ACTION_IDENTIFIER) {
+          return;
+        }
+
+        const concertId = response.notification.request.content.data?.concertId;
+        if (typeof concertId !== "string") return;
+
+        const favorites = await getFavoriteConcerts();
+        if (!isActive) return;
+
+        const concert = favorites.find((favorite) => favorite.id === concertId);
+        if (concert) {
+          router.push({
+            pathname: "/concert",
+            params: { data: JSON.stringify(concert) },
+          });
+        }
+      } catch {
+        // Opening a notification should not crash the app if local data is unavailable.
+      } finally {
+        void Notifications.clearLastNotificationResponseAsync().catch(() => undefined);
+      }
+    };
+
+    const responseListener = Notifications.addNotificationResponseReceivedListener(
+      (response) => void handleNotificationResponse(response),
+    );
+
+    void Notifications.getLastNotificationResponseAsync()
+      .then((response) => {
+        if (response && isActive) void handleNotificationResponse(response);
+      })
+      .catch(() => undefined);
 
     return () => {
-      notificationListener.remove();
+      isActive = false;
       responseListener.remove();
     };
   }, []);
