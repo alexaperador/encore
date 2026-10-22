@@ -1,6 +1,7 @@
 const TICKETMASTER_URL =
   "https://app.ticketmaster.com/discovery/v2/events.json";
 const PAGE_SIZE = 50;
+const REQUEST_TIMEOUT_MS = 10_000;
 
 type TicketmasterEvent = {
   id?: string;
@@ -85,14 +86,16 @@ export async function searchConcerts(
   const limit = Math.min(50, Math.max(1, query.limit ?? 20));
   const targetCount = offset + limit;
   const events: TicketmasterEvent[] = [];
-  const artistKeys = new Set<string>();
+  const eventIds = new Set<string>();
   let page = 0;
   let totalPages = 1;
 
   while (page < totalPages && events.length < targetCount) {
     url.searchParams.set("page", String(page));
 
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    });
     if (!response.ok) {
       const details = await response.text();
       throw new Error(`Ticketmaster returned ${response.status}: ${details}`);
@@ -106,13 +109,9 @@ export async function searchConcerts(
     for (const event of musicEvents) {
       if (events.length >= targetCount) break;
 
-      const artistName =
-        event._embedded?.attractions?.[0]?.name ?? event.name ?? event.id;
-      const artistKey = artistName?.trim().toLocaleLowerCase();
+      if (!event.id || eventIds.has(event.id)) continue;
 
-      if (!artistKey || artistKeys.has(artistKey)) continue;
-
-      artistKeys.add(artistKey);
+      eventIds.add(event.id);
       events.push(event);
     }
     totalPages = data.page?.totalPages ?? page + 1;

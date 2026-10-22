@@ -10,6 +10,13 @@ dotenv.config({ path: new URL("../.env", import.meta.url) });
 
 const port = Number(process.env.PORT ?? 8787);
 const apiKey = process.env.TICKETMASTER_API_KEY;
+const DEFAULT_LIMIT = 20;
+const MAX_LIMIT = 50;
+
+function getInteger(value: string | null, fallback: number): number {
+  if (value === null || !/^\d+$/.test(value)) return fallback;
+  return Number(value);
+}
 
 function sendJson(response: ServerResponse, status: number, body: unknown) {
   response.writeHead(status, {
@@ -30,8 +37,11 @@ function getQuery(request: IncomingMessage): ConcertQuery {
     city: url.searchParams.get("city")?.trim() || undefined,
     countryCode: url.searchParams.get("countryCode")?.trim() || undefined,
     category: url.searchParams.get("category")?.trim() || undefined,
-    offset: Number(url.searchParams.get("offset") ?? 0),
-    limit: Number(url.searchParams.get("limit") ?? 20),
+    offset: getInteger(url.searchParams.get("offset"), 0),
+    limit: Math.min(
+      MAX_LIMIT,
+      getInteger(url.searchParams.get("limit"), DEFAULT_LIMIT),
+    ),
   };
 }
 
