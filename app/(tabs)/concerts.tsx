@@ -1,6 +1,6 @@
 import AddConcert from "@/components/AddConcert";
 import ConcertCard from "@/components/ConcertCard";
-import type { Concert } from "@/lib/concerts";
+import { getConcertDateTime, getConcertDaysRemaining, type Concert } from "@/lib/concerts";
 import { getFavoriteConcerts, toggleFavoriteConcert } from "@/lib/favorites";
 import { i18n } from "@/lib/i18n";
 import {
@@ -33,12 +33,11 @@ export default function Concerts() {
   }, []);
 
   const categories = [
-    { label: i18n.t("concerts.categories.upcoming"), icon: "event" },
-    { label: i18n.t("concerts.categories.past"), icon: "history" },
-    { label: i18n.t("concerts.categories.all"), icon: "list" },
+    { key: "upcoming", label: i18n.t("concerts.categories.upcoming"), icon: "event" },
+    { key: "past", label: i18n.t("concerts.categories.past"), icon: "history" },
+    { key: "all", label: i18n.t("concerts.categories.all"), icon: "list" },
   ] as const;
-  const [selectedCategorie, setSelectedCategorie] =
-    useState<string>(i18n.t("concerts.categories.upcoming"));
+  const [selectedCategory, setSelectedCategory] = useState("upcoming");
 
   useFocusEffect(
     useCallback(() => {
@@ -89,30 +88,34 @@ export default function Concerts() {
   };
 
   const selectCategory = (category: string) => {
-    setSelectedCategorie(category);
+    setSelectedCategory(category);
   };
 
-  const currentDate = new Date();
-  currentDate.setHours(0, 0, 0, 0);
+  const visibleConcerts = favoriteConcerts
+    .filter((concert) => {
+      const daysRemaining = getConcertDaysRemaining(concert.date);
+      if (selectedCategory === "all") return true;
+      if (selectedCategory === "upcoming") {
+        return daysRemaining === null || daysRemaining >= 0;
+      }
+      return daysRemaining !== null && daysRemaining < 0;
+    })
+    .map((concert) => ({
+      concert,
+      timestamp: concert.date
+        ? getConcertDateTime(concert, "12:00")?.getTime() ?? Number.POSITIVE_INFINITY
+        : Number.POSITIVE_INFINITY,
+    }))
+    .sort((first, second) => {
+      const firstHasDate = Number.isFinite(first.timestamp);
+      const secondHasDate = Number.isFinite(second.timestamp);
+      if (firstHasDate !== secondHasDate) return firstHasDate ? -1 : 1;
 
-  const visibleConcerts = favoriteConcerts.filter((concert) => {
-    if (selectedCategorie === i18n.t("concerts.categories.all")) return true;
-
-    if (selectedCategorie === i18n.t("concerts.categories.upcoming")) {
-      return (
-        !concert.date || new Date(`${concert.date}T00:00:00`) >= currentDate
-      );
-    }
-
-    if (selectedCategorie === i18n.t("concerts.categories.past")) {
-      return (
-        Boolean(concert.date) &&
-        new Date(`${concert.date}T00:00:00`) < currentDate
-      );
-    }
-
-    return true;
-  });
+      return selectedCategory === "past"
+        ? second.timestamp - first.timestamp
+        : first.timestamp - second.timestamp;
+    })
+    .map(({ concert }) => concert);
 
   const emptyMessage = isFavoritesLoading ? (
     <View className="items-center py-12">
@@ -154,14 +157,14 @@ export default function Concerts() {
         className="my-5 flex-row rounded-2xl bg-background p-2"
       >
         {categories.map((category) => {
-          const isSelected = selectedCategorie === category.label;
+          const isSelected = selectedCategory === category.key;
 
           return (
             <Pressable
-              key={category.label}
+              key={category.key}
               accessibilityRole="radio"
               accessibilityState={{ selected: isSelected }}
-              onPress={() => selectCategory(category.label)}
+              onPress={() => selectCategory(category.key)}
               className={`min-h-16 flex-1 items-center justify-center rounded-2xl will-change-variable px-2 py-2 ${isSelected ? "bg-border shadow-sm" : ""
                 }`}
             >
@@ -215,7 +218,10 @@ export default function Concerts() {
                   selected: notificationIds.includes(concert.id),
                 }}
                 hitSlop={8}
-                onPress={() => handleToggleNotification(concert)}
+                onPress={(event) => {
+                  event.stopPropagation();
+                  void handleToggleNotification(concert);
+                }}
                 className="rounded-full active:opacity-70"
               >
                 <MaterialIcons

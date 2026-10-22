@@ -12,6 +12,7 @@ type TicketmasterEvent = {
     start?: {
       localDate?: string;
       localTime?: string;
+      timezone?: string;
     };
   };
   classifications?: Array<{
@@ -46,6 +47,7 @@ export type Concert = {
   category: string;
   date: string | null;
   hour: string | null;
+  timezone: string | null;
   venue: string | null;
   city: string | null;
   imageUrl: string | null;
@@ -82,7 +84,7 @@ export async function searchConcerts(
     url.searchParams.set("classificationName", query.category);
   }
 
-  const offset = Math.max(0, query.offset ?? 0);
+  const offset = Math.min(500, Math.max(0, query.offset ?? 0));
   const limit = Math.min(50, Math.max(1, query.limit ?? 20));
   const targetCount = offset + limit;
   const events: TicketmasterEvent[] = [];
@@ -140,6 +142,7 @@ export async function searchConcerts(
       artist: event.artist ?? event._embedded?.attractions?.[0]?.name ?? "",
       date: event.dates?.start?.localDate ?? null,
       hour: event.dates?.start?.localTime?.slice(0, 5) ?? null,
+      timezone: event.dates?.start?.timezone ?? null,
       venue: venue?.name ?? null,
       city: venue?.city?.name ?? null,
       imageUrl: image?.url ?? null,

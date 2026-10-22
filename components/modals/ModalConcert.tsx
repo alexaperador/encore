@@ -1,6 +1,8 @@
 import {
   Concert,
+  formatConcertDate,
   formatConcertTiming,
+  getConcertDateTime,
   getConcertDaysRemaining,
 } from "@/lib/concerts";
 import { getFavoriteConcertIds } from "@/lib/favorites";
@@ -26,17 +28,16 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-function formatConcertDate(date: string | null) {
+function formatConcertDateLabel(date: string | null) {
   if (!date) return i18n.t("concertDetail.dateUnavailable");
 
-  return new Intl.DateTimeFormat(
-    i18n.locale.startsWith("en") ? "en-US" : "es-ES",
-    {
+  return (
+    formatConcertDate(date, i18n.locale.startsWith("en") ? "en-US" : "es-ES", {
       day: "numeric",
       month: "long",
       year: "numeric",
-    },
-  ).format(new Date(`${date}T00:00:00`));
+    }) ?? i18n.t("concertDetail.dateUnavailable")
+  );
 }
 
 type MaterialIconName = keyof typeof MaterialIcons.glyphMap;
@@ -118,11 +119,9 @@ export default function ModalConcert({
         return;
       }
 
-      const startDate = new Date(
-        `${concert.date}T${concert.hour ?? "20:00"}:00`,
-      );
+      const startDate = getConcertDateTime(concert, "20:00");
 
-      if (Number.isNaN(startDate.getTime())) {
+      if (!startDate || Number.isNaN(startDate.getTime())) {
         Alert.alert(
           i18n.t("concertDetail.invalidDateTitle"),
           i18n.t("concertDetail.invalidDateMessage"),
@@ -274,7 +273,7 @@ export default function ModalConcert({
                     {i18n.t("concertDetail.dateAndTime")}
                   </Text>
                   <Text className="mt-1 text-base font-semibold text-[#3E2C23]">
-                    {formatConcertDate(concert.date)}
+                    {formatConcertDateLabel(concert.date)}
                   </Text>
                   <Text className="mt-0.5 text-sm text-[#3E2C23]/60">
                     {concert.hour ?? i18n.t("concertDetail.timeUnavailable")}

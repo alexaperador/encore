@@ -77,7 +77,9 @@
         "nextConcerts": "Próximos conciertos",
         "concertsOf": "Conciertos de ",
         "emptyCategory": "No hay conciertos disponibles en esta categoría.",
-        "loadMoreConcerts": "Mostrar más conciertos"
+        "loadMoreConcerts": "Mostrar más conciertos",
+        "loadMoreError": "No se pudieron cargar más conciertos.",
+        "retry": "Reintentar"
     },
     "concerts": {
         "title": "Mis conciertos",

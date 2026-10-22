@@ -79,7 +79,9 @@
         "nextConcerts": "Next concerts",
         "concertsOf": "Concerts of ",
         "emptyCategory": "No concerts available in this category.",
-        "loadMoreConcerts": "Load more concerts"
+        "loadMoreConcerts": "Load more concerts",
+        "loadMoreError": "Could not load more concerts.",
+        "retry": "Try again"
     },
     "concerts": {
         "title": "My concerts",

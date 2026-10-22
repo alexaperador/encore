@@ -247,7 +247,10 @@ export default function Alerts() {
                   selected: notificationIds.includes(concert.id),
                 }}
                 hitSlop={8}
-                onPress={() => handleToggleNotification(concert)}
+                onPress={(event) => {
+                  event.stopPropagation();
+                  void handleToggleNotification(concert);
+                }}
                 className="rounded-full active:opacity-70"
               >
                 <MaterialIcons

@@ -18,7 +18,10 @@ export default function LikeButton({
             accessibilityLabel={
                 isLiked ? i18n.t("concertcard.accessibilityLabelLiked") : i18n.t("concertcard.accessibilityLabelUnliked")
             }
-            onPress={() => onToggle(concert)}
+            onPress={(event) => {
+                event.stopPropagation();
+                onToggle(concert);
+            }}
             hitSlop={8}
         >
             <MaterialIcons

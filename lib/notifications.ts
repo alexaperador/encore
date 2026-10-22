@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
 import { i18n } from "./i18n";
-import type { Concert } from "./concerts";
+import { getConcertDateTime, type Concert } from "./concerts";
 
 const NOTIFICATIONS_KEY = "@encore/concert-notifications";
 const REMINDER_PREFERENCES_KEY = "@encore/reminder-preferences";
@@ -75,13 +75,7 @@ async function ensureNotificationPermissions(): Promise<void> {
 }
 
 function getConcertDate(concert: Concert): Date | null {
-  if (!concert.date) return null;
-
-  const [year, month, day] = concert.date.split("-").map(Number);
-  const [hour, minute] = (concert.hour ?? "09:00").split(":").map(Number);
-  if (![year, month, day, hour, minute].every(Number.isFinite)) return null;
-
-  return new Date(year, month - 1, day, hour, minute);
+  return getConcertDateTime(concert, "09:00");
 }
 
 function getReminderDate(concert: Concert, reminderId: string): Date | null {

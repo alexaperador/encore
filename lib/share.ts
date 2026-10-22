@@ -1,17 +1,15 @@
 import { Share } from "react-native";
 import { i18n } from "./i18n";
-import type { Concert } from "./concerts";
+import { formatConcertDate, type Concert } from "./concerts";
 
 export const shareConcert = async (concert: Concert) => {
     const locale = i18n.locale.startsWith("en") ? "en-US" : "es-ES";
-    const date = concert.date
-        ? new Date(`${concert.date}T00:00:00`).toLocaleDateString(locale, {
+    const date = formatConcertDate(concert.date, locale, {
             weekday: "long",
             day: "numeric",
             month: "long",
             year: "numeric",
-        })
-        : i18n.t("share.dateToBeConfirmed");
+        }) ?? i18n.t("share.dateToBeConfirmed");
     const location = [concert.venue, concert.city]
         .filter(Boolean)
         .join(" · ");

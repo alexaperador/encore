@@ -6,7 +6,7 @@ import { getFavoriteConcertIds, toggleFavoriteConcert } from "@/lib/favorites";
 import { i18n } from "@/lib/i18n";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
   ActivityIndicator,
@@ -19,6 +19,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const CONCERTS_PER_PAGE = 20;
+const MAX_CONCERT_OFFSET = 500;
 
 export default function Explore() {
   const categories = [
@@ -35,8 +36,18 @@ export default function Explore() {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [loadMoreError, setLoadMoreError] = useState<string | null>(null);
   const [hasMoreConcerts, setHasMoreConcerts] = useState(true);
   const [countryCode, setCountryCode] = useState<CountryCode>("ES");
+  const [retryCount, setRetryCount] = useState(0);
+  const queryKey = JSON.stringify([
+    countryCode,
+    searchText.trim(),
+    selectedCategory,
+  ]);
+  const queryKeyRef = useRef(queryKey);
+  const pageControllerRef = useRef<AbortController | null>(null);
+  queryKeyRef.current = queryKey;
 
   useEffect(() => {
     getStoredCountry().then(setCountryCode);
@@ -65,10 +76,16 @@ export default function Explore() {
 
   useEffect(() => {
     let isCancelled = false;
-    const timeout = setTimeout(async () => {
-      setIsLoading(true);
-      setErrorMessage(null);
+    const controller = new AbortController();
+    setIsLoading(true);
+    setErrorMessage(null);
+    setLoadMoreError(null);
+    setHasMoreConcerts(true);
+    pageControllerRef.current?.abort();
+    pageControllerRef.current = null;
+    setIsLoadingMore(false);
 
+    const timeout = setTimeout(async () => {
       try {
         const results = await fetchConcerts({
           keyword: searchText.trim(),
@@ -76,10 +93,11 @@ export default function Explore() {
           category: selectedCategory === "all" ? undefined : selectedCategory,
           limit: CONCERTS_PER_PAGE,
           offset: 0,
+          signal: controller.signal,
         });
         if (!isCancelled) {
           setConcerts(results);
-          setHasMoreConcerts(results.length > 0);
+          setHasMoreConcerts(results.length === CONCERTS_PER_PAGE);
         }
       } catch {
         if (!isCancelled) {
@@ -94,8 +112,9 @@ export default function Explore() {
     return () => {
       isCancelled = true;
       clearTimeout(timeout);
+      controller.abort();
     };
-  }, [countryCode, searchText, selectedCategory]);
+  }, [countryCode, searchText, selectedCategory, retryCount]);
 
   const selectCategory = (category: string) => {
     setSelectedCategory(category);
@@ -108,7 +127,11 @@ export default function Explore() {
   const loadMoreConcerts = async () => {
     if (isLoadingMore || !hasMoreConcerts) return;
 
+    const requestedQueryKey = queryKey;
+    const controller = new AbortController();
+    pageControllerRef.current = controller;
     setIsLoadingMore(true);
+    setLoadMoreError(null);
     try {
       const results = await fetchConcerts({
         keyword: searchText.trim(),
@@ -116,11 +139,33 @@ export default function Explore() {
         category: selectedCategory === "all" ? undefined : selectedCategory,
         limit: CONCERTS_PER_PAGE,
         offset: concerts.length,
+        signal: controller.signal,
       });
-      setConcerts((currentConcerts) => [...currentConcerts, ...results]);
-      setHasMoreConcerts(results.length === CONCERTS_PER_PAGE);
+      if (queryKeyRef.current !== requestedQueryKey) return;
+
+      setConcerts((currentConcerts) => {
+        const knownIds = new Set(currentConcerts.map((concert) => concert.id));
+        return [
+          ...currentConcerts,
+          ...results.filter((concert) => !knownIds.has(concert.id)),
+        ];
+      });
+      setHasMoreConcerts(
+        results.length === CONCERTS_PER_PAGE &&
+          concerts.length + results.length < MAX_CONCERT_OFFSET + CONCERTS_PER_PAGE,
+      );
+    } catch {
+      if (
+        !controller.signal.aborted &&
+        queryKeyRef.current === requestedQueryKey
+      ) {
+        setLoadMoreError(i18n.t("explore.loadMoreError"));
+      }
     } finally {
-      setIsLoadingMore(false);
+      if (pageControllerRef.current === controller) {
+        pageControllerRef.current = null;
+        setIsLoadingMore(false);
+      }
     }
   };
 
@@ -207,6 +252,14 @@ export default function Explore() {
     <View className="items-center px-6 py-12">
       <MaterialIcons name="cloud-off" size={32} color="#A47148" />
       <Text className="mt-3 text-center text-background">{errorMessage}</Text>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={i18n.t("explore.retry")}
+        onPress={() => setRetryCount((current) => current + 1)}
+        className="mt-4 rounded-2xl bg-background px-5 py-3"
+      >
+        <Text className="font-semibold text-[#F3E1CE]">{i18n.t("explore.retry")}</Text>
+      </Pressable>
     </View>
   ) : (
     <View className="items-center px-6 py-12">
@@ -239,22 +292,35 @@ export default function Explore() {
             !errorMessage &&
             filteredItems.length > 0 &&
             hasMoreConcerts ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={i18n.t("explore.loadMoreConcerts")}
-              disabled={isLoadingMore}
-              onPress={loadMoreConcerts}
-              className="mt-2 mb-4 flex-row items-center justify-center rounded-2xl bg-background px-5 py-3"
-            >
-              {isLoadingMore ? (
-                <ActivityIndicator color="#F3E1CE" />
-              ) : (
-                <>
-                  <Text className="font-semibold text-[#F3E1CE]">{i18n.t("explore.loadMoreConcerts")}</Text>
-                  <MaterialIcons name="expand-more" size={20} color="#F3E1CE" />
-                </>
-              )}
-            </Pressable>
+            <View className="mb-4 mt-2 items-center">
+              {loadMoreError ? (
+                <Text className="mb-2 text-center text-background">{loadMoreError}</Text>
+              ) : null}
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={i18n.t(
+                  loadMoreError ? "explore.retry" : "explore.loadMoreConcerts",
+                )}
+                disabled={isLoadingMore}
+                onPress={loadMoreConcerts}
+                className="flex-row items-center justify-center rounded-2xl bg-background px-5 py-3"
+              >
+                {isLoadingMore ? (
+                  <ActivityIndicator color="#F3E1CE" />
+                ) : (
+                  <>
+                    <Text className="font-semibold text-[#F3E1CE]">
+                      {i18n.t(loadMoreError ? "explore.retry" : "explore.loadMoreConcerts")}
+                    </Text>
+                    <MaterialIcons
+                      name={loadMoreError ? "refresh" : "expand-more"}
+                      size={20}
+                      color="#F3E1CE"
+                    />
+                  </>
+                )}
+              </Pressable>
+            </View>
           ) : null
         }
         initialNumToRender={6}
