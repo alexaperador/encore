@@ -9,7 +9,10 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.aaperadors.encore"
+      "bundleIdentifier": "com.aaperadors.encore",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -19,7 +22,11 @@
         "monochromeImage": "./assets/images/encore-monochrome.jpg"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.aaperadors.encore"
+      "package": "com.aaperadors.encore",
+      "permissions": [
+        "android.permission.READ_CALENDAR",
+        "android.permission.WRITE_CALENDAR"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -52,6 +59,29 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "build": {
+          "experimental": {
+            "ios": {
+              "appExtensions": [
+                {
+                  "targetName": "ExpoWidgetsTarget",
+                  "bundleIdentifier": "com.aaperadors.encore.ExpoWidgetsTarget",
+                  "entitlements": {
+                    "com.apple.security.application-groups": [
+                      "group.com.aaperadors.encore"
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "projectId": "f7165b1d-e5e9-41ac-8039-bacaa009b83c"
+      }
     }
   }
 }
