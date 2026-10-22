@@ -66,7 +66,6 @@ export default function Settings() {
 function SettingsContent() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [reminderAlertsEnabled, setReminderAlertsEnabled] = useState(true);
-  const [darkModeEnabled, setDarkModeEnabled] = useState(false);
   const [isLanguageModalVisible, setLanguageModalVisible] = useState(false);
   const [isCountryModalVisible, setCountryModalVisible] = useState(false);
   const [isAboutModalVisible, setAboutModalVisible] = useState(false);
@@ -96,36 +95,6 @@ function SettingsContent() {
             {i18n.t("settings.subtitle")}
           </Text>
         </View>
-
-        <Section title={i18n.t("settings.notifications")}>
-          <SettingRow
-            icon="notifications-none"
-            label={i18n.t("settings.pushNotifications")}
-            description={i18n.t("settings.pushNotificationsDescription")}
-          >
-            <Switch
-              accessibilityLabel={i18n.t("settings.enablePushNotifications")}
-              value={notificationsEnabled}
-              onValueChange={setNotificationsEnabled}
-              trackColor={{ false: "#6F4E37", true: "#A47148" }}
-              thumbColor={notificationsEnabled ? "#FFCD9F" : "#C9A27E"}
-            />
-          </SettingRow>
-          <View className="ml-[68px] h-px bg-[#6F4E37]" />
-          <SettingRow
-            icon="event"
-            label={i18n.t("settings.reminders")}
-            description={i18n.t("settings.remindersDescription")}
-          >
-            <Switch
-              accessibilityLabel={i18n.t("settings.enableReminders")}
-              value={reminderAlertsEnabled}
-              onValueChange={setReminderAlertsEnabled}
-              trackColor={{ false: "#6F4E37", true: "#A47148" }}
-              thumbColor={reminderAlertsEnabled ? "#FFCD9F" : "#C9A27E"}
-            />
-          </SettingRow>
-        </Section>
 
         <Section title={i18n.t("settings.preferences")}>
           <SettingRow
@@ -162,20 +131,6 @@ function SettingsContent() {
               </Text>
               <MaterialIcons name="keyboard-arrow-down" size={20} color="#3E2C23" />
             </Pressable>
-          </SettingRow>
-          <View className="ml-[68px] h-px bg-[#6F4E37]" />
-          <SettingRow
-            icon="dark-mode"
-            label={i18n.t("settings.darkMode")}
-            description={i18n.t("settings.darkModeDescription")}
-          >
-            <Switch
-              accessibilityLabel="Activar modo oscuro"
-              value={darkModeEnabled}
-              onValueChange={setDarkModeEnabled}
-              trackColor={{ false: "#6F4E37", true: "#A47148" }}
-              thumbColor={darkModeEnabled ? "#FFCD9F" : "#C9A27E"}
-            />
           </SettingRow>
         </Section>
 
