@@ -2,12 +2,13 @@ import ModalConfirm from "@/components/modals/ModalConfirm";
 import ModalCountry from "@/components/modals/ModalCountry";
 import ModalLanguage from "@/components/modals/ModalLanguage";
 import ModalAbout from "@/components/modals/ModalAbout";
+import Text from "@/components/EncoreText";
 import { COUNTRIES, getStoredCountry, type CountryCode } from "@/lib/country";
 import { clearEncoreData } from "@/lib/favorites";
 import { i18n, type Language } from "@/lib/i18n";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useEffect, useState, type ComponentProps } from "react";
-import { Alert, Pressable, ScrollView, Text, View } from "react-native";
+import { Alert, Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import app from "../../app.json";
 
@@ -88,7 +89,7 @@ function SettingsContent() {
         showsVerticalScrollIndicator={false}
       >
         <View className="pt-4">
-          <Text className="text-5xl font-bold text-background">{i18n.t("settings.title")}</Text>
+          <Text typeface="display" className="text-5xl font-bold text-background">{i18n.t("settings.title")}</Text>
           <Text className="mt-1 text-lg text-[#A47148]">
             {i18n.t("settings.subtitle")}
           </Text>

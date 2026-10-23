@@ -1,4 +1,5 @@
 import type { Concert } from "@/lib/concerts";
+import Text, { EncoreTextInput as TextInput } from "@/components/EncoreText";
 import { toggleFavoriteConcert } from "@/lib/favorites";
 import { i18n } from "@/lib/i18n";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -13,12 +14,11 @@ import {
     Platform,
     Pressable,
     ScrollView,
-    Text,
-    TextInput,
     View,
 } from "react-native";
 import { Calendar } from "react-native-calendars";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { toastiva } from "toastiva";
 
 function toCalendarDate(date: Date) {
     const year = date.getFullYear();
@@ -150,6 +150,14 @@ export default function ModalAddConcert({
             await toggleFavoriteConcert(concert);
             onSaved?.();
             onClose();
+            toastiva.success(
+                i18n.t("modalAddConcert.savedTitle"),
+                {
+                    description: i18n.t("modalAddConcert.savedMessage", {
+                        title: concert.title,
+                    }),
+                },
+            );
         } catch {
             setIsSaving(false);
             Alert.alert(
@@ -185,7 +193,7 @@ export default function ModalAddConcert({
                     >
                         <View className="flex-row items-center justify-between border-b border-[#EADACA] px-6 pb-4 pt-4">
                             <View className="flex-1 pr-4">
-                                <Text className="text-2xl font-bold text-[#3E2C23]">
+                                <Text typeface="display" className="text-2xl font-bold text-[#3E2C23]">
                                     {i18n.t("modalAddConcert.title")}
                                 </Text>
                                 <Text className="mt-1 text-sm text-[#8A684E]">

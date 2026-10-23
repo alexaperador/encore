@@ -1,3 +1,4 @@
+import AddConcert from "@/components/AddConcert";
 import { COLORS } from "@/constants/Colors";
 import { i18n, subscribeToLanguage } from "@/lib/i18n";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -138,6 +139,7 @@ function FloatingTabBar({ state, descriptors, navigation }: TabBarProps) {
   return (
     <View
       pointerEvents="box-none"
+      className="flex-row items-center justify-center gap-2"
       style={[styles.overlay, { paddingBottom: Math.max(insets.bottom, 12) }]}
     >
       <View style={styles.bar} className="rounded-2xl" accessibilityRole="tablist">
@@ -151,6 +153,9 @@ function FloatingTabBar({ state, descriptors, navigation }: TabBarProps) {
           />
         ))}
       </View>
+      <AddConcert onConcertAdded={() => { }} children={
+        <MaterialIcons name="add" size={24} color="white" style={styles.bar} />
+      } />
     </View>
   );
 }

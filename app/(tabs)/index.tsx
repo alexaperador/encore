@@ -1,5 +1,6 @@
 import AddConcert from "@/components/AddConcert";
 import ConcertCard from "@/components/ConcertCard";
+import Text, { EncoreTextInput as TextInput } from "@/components/EncoreText";
 import { fetchConcerts, type Concert } from "@/lib/concerts";
 import { getStoredCountry, subscribeToCountry, type CountryCode } from "@/lib/country";
 import { getFavoriteConcertIds, toggleFavoriteConcert } from "@/lib/favorites";
@@ -8,15 +9,13 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  Alert,
   ActivityIndicator,
   FlatList,
   Pressable,
-  Text,
-  TextInput,
   View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { toastiva } from "toastiva";
 
 const CONCERTS_PER_PAGE = 20;
 const MAX_CONCERT_OFFSET = 500;
@@ -66,10 +65,21 @@ export default function Explore() {
     try {
       const nextFavoriteIds = await toggleFavoriteConcert(concert);
       setFavoriteIds(nextFavoriteIds);
+      const wasAdded = nextFavoriteIds.includes(concert.id);
+      const messageKey = wasAdded
+        ? "concertcard.favoriteAdded"
+        : "concertcard.favoriteRemoved";
+      const descriptionKey = wasAdded
+        ? "concertcard.favoriteAddedDescription"
+        : "concertcard.favoriteRemovedDescription";
+
+      toastiva[wasAdded ? "success" : "info"](i18n.t(messageKey), {
+        description: i18n.t(descriptionKey, { title: concert.title }),
+      });
     } catch {
-      Alert.alert(
+      toastiva.error(
         i18n.t("alerts.updateErrorTitle"),
-        i18n.t("alerts.updateErrorMessage"),
+        { description: i18n.t("alerts.updateErrorMessage") },
       );
     }
   };
@@ -172,7 +182,7 @@ export default function Explore() {
   const listHeader = (
     <>
       <View>
-        <Text className="text-5xl font-bold text-background">{i18n.t("explore.title")}</Text>
+        <Text typeface="display" className="text-5xl font-bold text-background">{i18n.t("explore.title")}</Text>
         <Text className="text-xl text-[#A47148]">
           {i18n.t("explore.subtitle")}
         </Text>

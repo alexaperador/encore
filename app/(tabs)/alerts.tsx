@@ -1,4 +1,5 @@
 import ConcertCard from "@/components/ConcertCard";
+import Text from "@/components/EncoreText";
 import { Concert } from "@/lib/concerts";
 import { getFavoriteConcerts, toggleFavoriteConcert } from "@/lib/favorites";
 import {
@@ -11,9 +12,10 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
-import { ActivityIndicator, Alert, FlatList, Pressable, Switch, Text, View } from "react-native";
+import { ActivityIndicator, FlatList, Pressable, Switch, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { i18n } from "@/lib/i18n";
+import { toastiva } from "toastiva";
 
 
 export default function Alerts() {
@@ -95,10 +97,18 @@ export default function Alerts() {
       setAlertsConcerts((currentAlerts) =>
         currentAlerts.filter((alert) => alert.id !== concert.id),
       );
+      toastiva.info(
+        i18n.t("concertcard.favoriteRemoved"),
+        {
+          description: i18n.t("concertcard.favoriteRemovedDescription", {
+            title: concert.title,
+          }),
+        },
+      );
     } catch {
-      Alert.alert(
+      toastiva.error(
         i18n.t("alerts.updateErrorTitle"),
-        i18n.t("alerts.updateErrorMessage"),
+        { description: i18n.t("alerts.updateErrorMessage") },
       );
     }
   };
@@ -113,10 +123,19 @@ export default function Alerts() {
           currentAlerts.filter((alert) => alert.id !== concert.id),
         );
       }
+      const messageKey = enabled
+        ? "concertDetail.notificationToggledOff"
+        : "concertDetail.notificationToggledOn";
+      const descriptionKey = enabled
+        ? "concertDetail.notificationToggledDescriptionOff"
+        : "concertDetail.notificationToggledDescriptionOn";
+      toastiva[enabled ? "info" : "success"](i18n.t(messageKey), {
+        description: i18n.t(descriptionKey),
+      });
     } catch {
-      Alert.alert(
+      toastiva.error(
         i18n.t("alerts.scheduleErrorTitle"),
-        i18n.t("alerts.scheduleErrorMessage"),
+        { description: i18n.t("alerts.scheduleErrorMessage") },
       );
     }
   };
@@ -148,7 +167,7 @@ export default function Alerts() {
   const listHeader = (
     <View className="mb-6">
       <View className="flex-row items-center justify-between gap-3">
-        <Text className="flex-1 text-4xl font-bold text-background">{i18n.t("alerts.title")}</Text>
+        <Text typeface="display" className="flex-1 text-4xl font-bold text-background">{i18n.t("alerts.title")}</Text>
       </View>
       <Text className="text-xl text-[#A47148]">
         {i18n.t("alerts.subtitle")}
@@ -195,9 +214,9 @@ export default function Alerts() {
                 onValueChange={async (enabled) => {
                   if (enabled === isActive || isUpdatingReminders) return;
                   if (!enabled && activeReminders.length === 1) {
-                    Alert.alert(
+                    toastiva.warning(
                       i18n.t("alerts.reminderPreferenceTitle"),
-                      i18n.t("alerts.reminderPreferenceError"),
+                      { description: i18n.t("alerts.reminderPreferenceError") },
                     );
                     return;
                   }
@@ -210,10 +229,18 @@ export default function Alerts() {
                       alertsConcerts,
                     );
                     setActiveReminders(nextReminders);
+                    toastiva[enabled ? "success" : "info"](
+                      i18n.t(
+                        enabled
+                          ? "alerts.reminderPreferenceEnabled"
+                          : "alerts.reminderPreferenceDisabled",
+                        { reminder: reminder.title },
+                      ),
+                    );
                   } catch {
-                    Alert.alert(
+                    toastiva.error(
                       i18n.t("alerts.scheduleErrorTitle"),
-                      i18n.t("alerts.scheduleErrorMessage"),
+                      { description: i18n.t("alerts.scheduleErrorMessage") },
                     );
                   } finally {
                     setIsUpdatingReminders(false);

@@ -1,11 +1,30 @@
-import { getStoredLanguage, setLanguage } from "@/lib/i18n";
 import { getFavoriteConcerts } from "@/lib/favorites";
+import { getStoredLanguage, setLanguage } from "@/lib/i18n";
 import "../global.css";
 
 import * as Notifications from 'expo-notifications';
+import { useFonts } from "expo-font";
 import { router, Stack } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { ToastivaProvider } from "toastiva";
+
+void SplashScreen.preventAutoHideAsync().catch(() => undefined);
+
+const fontFiles = {
+  "DMSans-Regular": require("../assets/fonts/DM_Sans/static/DMSans-Regular.ttf"),
+  "DMSans-Medium": require("../assets/fonts/DM_Sans/static/DMSans-Medium.ttf"),
+  "DMSans-SemiBold": require("../assets/fonts/DM_Sans/static/DMSans-SemiBold.ttf"),
+  "DMSans-Bold": require("../assets/fonts/DM_Sans/static/DMSans-Bold.ttf"),
+  "SpaceGrotesk-Regular": require("../assets/fonts/Space_Grotesk/static/SpaceGrotesk-Regular.ttf"),
+  "SpaceGrotesk-Medium": require("../assets/fonts/Space_Grotesk/static/SpaceGrotesk-Medium.ttf"),
+  "SpaceGrotesk-SemiBold": require("../assets/fonts/Space_Grotesk/static/SpaceGrotesk-SemiBold.ttf"),
+  "SpaceGrotesk-Bold": require("../assets/fonts/Space_Grotesk/static/SpaceGrotesk-Bold.ttf"),
+};
+
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -18,6 +37,14 @@ Notifications.setNotificationHandler({
 
 
 export default function RootLayout() {
+  const [fontsLoaded, fontError] = useFonts(fontFiles);
+
+  useEffect(() => {
+    if (fontsLoaded || fontError) {
+      void SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded, fontError]);
+
   useEffect(() => {
     void getStoredLanguage().then((language) => {
       if (language) {
@@ -53,14 +80,13 @@ export default function RootLayout() {
         const concert = favorites.find((favorite) => favorite.id === concertId);
         if (concert) {
           router.push({
-            pathname: "/concert",
+            pathname: "/concerts",
             params: { data: JSON.stringify(concert) },
           });
         }
       } catch {
-        // Opening a notification should not crash the app if local data is unavailable.
       } finally {
-        void Notifications.clearLastNotificationResponseAsync().catch(() => undefined);
+        void Notifications.clearLastNotificationResponse();
       }
     };
 
@@ -68,9 +94,10 @@ export default function RootLayout() {
       (response) => void handleNotificationResponse(response),
     );
 
-    void Notifications.getLastNotificationResponseAsync()
+    void Promise.resolve(Notifications.getLastNotificationResponse())
       .then((response) => {
-        if (response && isActive) void handleNotificationResponse(response);
+        if (!response || !isActive) return;
+        void handleNotificationResponse(response);
       })
       .catch(() => undefined);
 
@@ -79,17 +106,25 @@ export default function RootLayout() {
       responseListener.remove();
     };
   }, []);
+
+  if (!fontsLoaded && !fontError) return null;
+
   return (
     <>
       <StatusBar style="dark" />
-
-      <Stack
-        screenOptions={{
-          headerShown: false,
-        }}
-      >
-        <Stack.Screen name="(tabs)" />
-      </Stack>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <SafeAreaProvider>
+          <ToastivaProvider position="top-center">
+            <Stack
+              screenOptions={{
+                headerShown: false,
+              }}
+            >
+              <Stack.Screen name="(tabs)" />
+            </Stack>
+          </ToastivaProvider>
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
     </>
   );
 }

@@ -18,6 +18,10 @@
         "accessibilityLabelLiked": "Remove from favorites",
         "accessibilityLabelUnliked": "Add to favorites",
         "accessibilityLabelShare": "Share %{title}",
+        "favoriteAdded": "Added to My Concerts",
+        "favoriteAddedDescription": "%{title} is saved in your concerts.",
+        "favoriteRemoved": "Removed from My Concerts",
+        "favoriteRemovedDescription": "%{title} was removed from your concerts.",
         "dateNotAvailable": "Date not available",
         "timing": {
             "unknown": "Date to be confirmed",
@@ -26,7 +30,7 @@
             "today": "Today",
             "tomorrow": "Tomorrow",
             "inDays": "In %{count} days",
-        "inDay": "Tomorrow"
+            "inDay": "Tomorrow"
         }
     },
     "modalAddConcert": {
@@ -61,6 +65,8 @@
         "venue": "Venue",
         "venuePlaceholder": "E.g. Palau Sant Jordi",
         "save": "Save",
+        "savedTitle": "Concert saved",
+        "savedMessage": "%{title} was added to My Concerts.",
         "permissionTitle": "Permission required",
         "permissionMessage": "We need access to your photos to choose a cover.",
         "missingDataTitle": "Missing information",
@@ -127,7 +133,9 @@
         "disableReminder": "Disable %{reminder} reminders",
         "reminderSwitchHint": "Choose when to receive concert reminders.",
         "reminderPreferenceTitle": "Reminder preferences",
-        "reminderPreferenceError": "Keep at least one reminder time enabled. Turn off the bell on a concert to stop its reminders."
+        "reminderPreferenceError": "Keep at least one reminder time enabled. Turn off the bell on a concert to stop its reminders.",
+        "reminderPreferenceEnabled": "Reminder enabled: %{reminder}",
+        "reminderPreferenceDisabled": "Reminder disabled: %{reminder}"
     },
     "notifications": {
         "channelName": "Concert reminders",
@@ -177,7 +185,12 @@
         "remainingLabel": "Remaining",
         "today": "Today",
         "oneDayRemaining": "%{count} day",
-        "daysRemaining": "%{count} days"
+        "daysRemaining": "%{count} days",
+        "notificationSuccessTitle": "Notification updated",
+        "notificationToggledOn": "Notification toggled on",
+        "notificationToggledOff": "Notification toggled off",
+        "notificationToggledDescriptionOn": "You will receive a notification for this concert based on your preferences.",
+        "notificationToggledDescriptionOff": "You will no longer receive notifications for this concert."
     },
     "settings": {
         "title": "Settings",

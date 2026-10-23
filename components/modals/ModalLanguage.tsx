@@ -1,7 +1,8 @@
 import { getStoredLanguage, i18n, setLanguage, type Language } from "@/lib/i18n";
+import Text from "@/components/EncoreText";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
-import { Modal, Pressable, Text, View } from "react-native";
+import { Modal, Pressable, View } from "react-native";
 
 export default function ModalLanguage({
     isVisible,
@@ -49,7 +50,7 @@ export default function ModalLanguage({
                     onPress={(event) => event.stopPropagation()}
                 >
                     <View className="mb-5 flex-row items-center justify-between">
-                        <Text className="text-2xl font-bold text-background">
+                        <Text typeface="display" className="text-2xl font-bold text-background">
                             {i18n.t("settings.changeLanguage")}
                         </Text>
                         <Pressable

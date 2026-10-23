@@ -1,7 +1,8 @@
 import ModalConcert from "@/components/modals/ModalConcert";
+import Text from "@/components/EncoreText";
 import type { Concert } from "@/lib/concerts";
 import { router, useLocalSearchParams } from "expo-router";
-import { Text, View } from "react-native";
+import { View } from "react-native";
 
 function parseConcert(value: string | string[] | undefined): Concert | null {
     if (typeof value !== "string") return null;
@@ -37,7 +38,7 @@ export default function SharedConcert() {
     if (!concert) {
         return (
             <View className="flex-1 items-center justify-center bg-white px-8">
-                <Text className="text-center text-xl font-bold text-[#3E2C23]">
+                <Text typeface="display" className="text-center text-xl font-bold text-[#3E2C23]">
                     No se pudo abrir este concierto
                 </Text>
                 <Text className="mt-2 text-center text-base text-[#6B7280]">

@@ -5,6 +5,7 @@ import {
   getConcertDateTime,
   getConcertDaysRemaining,
 } from "@/lib/concerts";
+import Text from "@/components/EncoreText";
 import { getFavoriteConcertIds } from "@/lib/favorites";
 import {
   getNotificationConcertIds,
@@ -23,10 +24,10 @@ import {
   Modal,
   Pressable,
   ScrollView,
-  Text,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { toastiva, ToastivaProvider } from "toastiva";
 
 function formatConcertDateLabel(date: string | null) {
   if (!date) return i18n.t("concertDetail.dateUnavailable");
@@ -143,14 +144,14 @@ export default function ModalConcert({
         url: concert.ticketUrl ?? undefined,
       });
 
-      Alert.alert(
+      toastiva.success(
         i18n.t("concertDetail.addedTitle"),
-        i18n.t("concertDetail.addedMessage"),
+        { description: i18n.t("concertDetail.addedMessage") },
       );
     } catch {
-      Alert.alert(
+      toastiva.error(
         i18n.t("concertDetail.addErrorTitle"),
-        i18n.t("concertDetail.addErrorMessage"),
+        { description: i18n.t("concertDetail.addErrorMessage") },
       );
     }
   };
@@ -158,9 +159,9 @@ export default function ModalConcert({
   const openUrl = async () => {
     const url = concert.ticketUrl;
     if (!url) {
-      Alert.alert(
+      toastiva.warning(
         i18n.t("concertDetail.ticketsUnavailableTitle"),
-        i18n.t("concertDetail.ticketsUnavailableMessage"),
+        { description: i18n.t("concertDetail.ticketsUnavailableMessage") },
       );
       return;
     }
@@ -169,23 +170,32 @@ export default function ModalConcert({
     if (supported) {
       await Linking.openURL(url);
     } else {
-      Alert.alert(
-        i18n.t("concertDetail.cannotOpenUrl", { url }),
-      );
+      toastiva.error(i18n.t("concertDetail.cannotOpenUrl", { url }));
     }
   };
 
   const toggleNotification = async () => {
+    const isEnabled = notificationIds.includes(concert.id);
     try {
       const nextNotificationIds = await setConcertNotificationEnabled(
         concert,
-        !notificationIds.includes(concert.id),
+        !isEnabled,
       );
       setNotificationIds(nextNotificationIds);
+      const messageKey = isEnabled
+        ? "concertDetail.notificationToggledOff"
+        : "concertDetail.notificationToggledOn";
+      const descriptionKey = isEnabled
+        ? "concertDetail.notificationToggledDescriptionOff"
+        : "concertDetail.notificationToggledDescriptionOn";
+
+      toastiva[isEnabled ? "info" : "success"](i18n.t(messageKey), {
+        description: i18n.t(descriptionKey),
+      });
     } catch {
-      Alert.alert(
+      toastiva.error(
         i18n.t("alerts.scheduleErrorTitle"),
-        i18n.t("alerts.scheduleErrorMessage"),
+        { description: i18n.t("alerts.scheduleErrorMessage") },
       );
     }
   };
@@ -200,11 +210,11 @@ export default function ModalConcert({
     },
     ...(canShowReminder
       ? [{
-          id: "reminder" as const,
-          label: i18n.t("concertDetail.actions.reminder"),
-          icon: "notifications" as const,
-          onPress: toggleNotification,
-        }]
+        id: "reminder" as const,
+        label: i18n.t("concertDetail.actions.reminder"),
+        icon: "notifications" as const,
+        onPress: toggleNotification,
+      }]
       : []),
     {
       id: "tickets",
@@ -222,149 +232,157 @@ export default function ModalConcert({
 
   return (
     <Modal animationType="slide" visible onRequestClose={onClose}>
-      <SafeAreaView
-        edges={["left", "right"]}
-        style={{ flex: 1, backgroundColor: "#F8F4EF" }}
-      >
-        <ScrollView style={{ flex: 1 }}>
-          <View className="w-full overflow-hidden bg-[#3E2C23]">
-            {concert.imageUrl ? (
-              <Image
-                source={{ uri: concert.imageUrl }}
-                accessibilityLabel={concert.title}
-                className="h-full w-full"
-                resizeMode="cover"
-              />
-            ) : (
-              <View className="flex-1 justify-center bg-[#E5E7EB]">
-                <MaterialIcons
-                  name="image-not-supported"
-                  size={60}
-                  color="#9CA3AF"
+      <ToastivaProvider position="top-center">
+        <SafeAreaView
+          edges={["left", "right"]}
+          style={{ flex: 1, backgroundColor: "#F8F4EF" }}
+        >
+          <ScrollView style={{ flex: 1 }}>
+            <View className="w-full overflow-hidden bg-[#3E2C23]">
+              {concert.imageUrl ? (
+                <Image
+                  source={{ uri: concert.imageUrl }}
+                  accessibilityLabel={concert.title}
+                  className="h-full w-full"
+                  resizeMode="cover"
                 />
-              </View>
-            )}
-            <View className="absolute inset-x-0 bottom-0" />
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={i18n.t("concertDetail.closeDetails")}
-              onPress={onClose}
-              className="absolute left-5 top-15 z-10 h-11 w-11 items-center justify-center rounded-full bg-black/35"
-            >
-              <MaterialIcons name="arrow-back" size={24} color="white" />
-            </Pressable>
-            <View className="absolute bottom-5 left-5 right-5">
-              <Text className="text-3xl font-bold text-white" numberOfLines={2}>
-                {concert.artist || i18n.t("concertDetail.artistUnavailable")}
-              </Text>
-              <Text className="mt-1 text-base text-white/80" numberOfLines={1}>
-                {concert.title || i18n.t("concertDetail.titleUnavailable")}
-              </Text>
-            </View>
-          </View>
-          <View className="px-5 pb-8 pt-5">
-            <View className="rounded-2xl bg-white px-4 py-4 shadow-sm">
-              <View className="flex-row items-center border-b border-[#EDE0D4] pb-4">
-                <View className="h-10 w-10 items-center justify-center rounded-full bg-[#F3E7DB]">
-                  <MaterialIcons name="calendar-today" size={21} color="#6F4E37" />
+              ) : (
+                <View className="flex-1 justify-center items-center w-full h-125 bg-[#E5E7EB]">
+                  <MaterialIcons
+                    name="image-not-supported"
+                    size={60}
+                    color="#9CA3AF"
+                  />
                 </View>
-                <View className="ml-3 flex-1">
-                  <Text className="text-xs font-semibold uppercase tracking-wider text-[#9B7A62]">
-                    {i18n.t("concertDetail.dateAndTime")}
-                  </Text>
-                  <Text className="mt-1 text-base font-semibold text-[#3E2C23]">
-                    {formatConcertDateLabel(concert.date)}
-                  </Text>
-                  <Text className="mt-0.5 text-sm text-[#3E2C23]/60">
-                    {concert.hour ?? i18n.t("concertDetail.timeUnavailable")}
-                  </Text>
-                </View>
-              </View>
-              <View className="flex-row items-center pt-4">
-                <View className="h-10 w-10 items-center justify-center rounded-full bg-[#F3E7DB]">
-                  <MaterialIcons name="location-on" size={21} color="#6F4E37" />
-                </View>
-                <View className="ml-3 flex-1">
-                  <Text className="text-xs font-semibold uppercase tracking-wider text-[#9B7A62]">
-                    {i18n.t("concertDetail.location")}
-                  </Text>
-                  <Text className="mt-1 text-base font-semibold text-[#3E2C23]">
-                    {concert.venue ?? i18n.t("concertDetail.venueUnavailable")}
-                  </Text>
-                  <Text className="mt-0.5 text-sm text-[#3E2C23]/60">
-                    {concert.city ?? i18n.t("concertDetail.cityUnavailable")}
-                  </Text>
-                </View>
-              </View>
-            </View>
-            <Text className="mb-3 mt-6 text-xs font-bold uppercase tracking-[2px] text-[#9B7A62]">
-              {i18n.t("concertDetail.planExperience")}
-            </Text>
-            <View className="flex-row gap-2">
-              {actions.map((action) => (
-                <Pressable
-                  key={action.id}
-                  accessibilityRole="button"
-                  accessibilityLabel={action.label}
-                  onPress={action.onPress}
-                  className="min-h-[82px] flex-1 items-center justify-center rounded-2xl border border-[#E7D8CA] bg-white px-1 py-3"
-                  style={({ pressed }) => ({ opacity: pressed ? 0.65 : 1 })}
+              )}
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={i18n.t("concertDetail.closeDetails")}
+                onPress={onClose}
+                className="absolute left-5 top-15 z-10 h-11 w-11 items-center justify-center rounded-full bg-black/35"
+              >
+                <MaterialIcons name="arrow-back" size={24} color="white" />
+              </Pressable>
+              <View className="absolute bottom-0 left-0 right-0 z-10 border-t border-white/20 bg-background/80 px-5 pb-6 pt-5">
+                <Text
+                  typeface="display"
+                  className="text-3xl font-extrabold tracking-tight text-white"
+                  numberOfLines={2}
                 >
-                  <View className="h-9 w-9 items-center justify-center rounded-full bg-[#F3E7DB]">
-                    <MaterialIcons
-                      name={
-                        action.id === "reminder"
-                          ? notificationIds.includes(concert.id)
-                            ? "notifications-active"
-                            : "notifications-none"
-                          : action.icon
-                      }
-                      size={20}
-                      color="#6F4E37"
-                    />
-                  </View>
-                  <Text className="mt-2 text-center text-[11px] font-semibold text-[#3E2C23]">
-                    {action.label}
-                  </Text>
-                </Pressable>
-              ))}
+                  {concert.artist || i18n.t("concertDetail.artistUnavailable")}
+                </Text>
+                <Text
+                  className="mt-1.5 text-base font-medium text-white"
+                  numberOfLines={2}
+                >
+                  {concert.title || i18n.t("concertDetail.titleUnavailable")}
+                </Text>
+              </View>
             </View>
-            <View className="mt-6 rounded-2xl bg-background px-5 py-4">
-              {daysRemaining !== null && daysRemaining >= 0 ? (
-                <View className="flex-row items-center justify-between">
-                  <View>
-                    {daysRemaining === 0 ? null : (
-                      <Text className="text-sm font-semibold uppercase tracking-widest text-white/90">
-                        {i18n.t("concertDetail.remainingLabel")}
-                      </Text>
-                    )}
+            <View className="px-5 pb-8 pt-5">
+              <View className="rounded-2xl bg-white px-4 py-4 shadow-sm">
+                <View className="flex-row items-center border-b border-[#EDE0D4] pb-4">
+                  <View className="h-10 w-10 items-center justify-center rounded-full bg-[#F3E7DB]">
+                    <MaterialIcons name="calendar-today" size={21} color="#6F4E37" />
+                  </View>
+                  <View className="ml-3 flex-1">
+                    <Text className="text-xs font-semibold uppercase tracking-wider text-[#9B7A62]">
+                      {i18n.t("concertDetail.dateAndTime")}
+                    </Text>
+                    <Text className="mt-1 text-base font-semibold text-[#3E2C23]">
+                      {formatConcertDateLabel(concert.date)}
+                    </Text>
+                    <Text className="mt-0.5 text-sm text-[#3E2C23]/60">
+                      {concert.hour ?? i18n.t("concertDetail.timeUnavailable")}
+                    </Text>
+                  </View>
+                </View>
+                <View className="flex-row items-center pt-4">
+                  <View className="h-10 w-10 items-center justify-center rounded-full bg-[#F3E7DB]">
+                    <MaterialIcons name="location-on" size={21} color="#6F4E37" />
+                  </View>
+                  <View className="ml-3 flex-1">
+                    <Text className="text-xs font-semibold uppercase tracking-wider text-[#9B7A62]">
+                      {i18n.t("concertDetail.location")}
+                    </Text>
+                    <Text className="mt-1 text-base font-semibold text-[#3E2C23]">
+                      {concert.venue ?? i18n.t("concertDetail.venueUnavailable")}
+                    </Text>
+                    <Text className="mt-0.5 text-sm text-[#3E2C23]/60">
+                      {concert.city ?? i18n.t("concertDetail.cityUnavailable")}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+              <Text className="mb-3 mt-6 text-xs font-bold uppercase tracking-[2px] text-[#9B7A62]">
+                {i18n.t("concertDetail.planExperience")}
+              </Text>
+              <View className="flex-row gap-2">
+                {actions.map((action) => (
+                  <Pressable
+                    key={action.id}
+                    accessibilityRole="button"
+                    accessibilityLabel={action.label}
+                    onPress={action.onPress}
+                    className="min-h-[82px] flex-1 items-center justify-center rounded-2xl border border-[#E7D8CA] bg-white px-1 py-3"
+                    style={({ pressed }) => ({ opacity: pressed ? 0.65 : 1 })}
+                  >
+                    <View className="h-9 w-9 items-center justify-center rounded-full bg-[#F3E7DB]">
+                      <MaterialIcons
+                        name={
+                          action.id === "reminder"
+                            ? notificationIds.includes(concert.id)
+                              ? "notifications-active"
+                              : "notifications-none"
+                            : action.icon
+                        }
+                        size={20}
+                        color="#6F4E37"
+                      />
+                    </View>
+                    <Text className="mt-2 text-center text-[11px] font-semibold text-[#3E2C23]">
+                      {action.label}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+              <View className="mt-6 rounded-2xl bg-background px-5 py-4">
+                {daysRemaining !== null && daysRemaining >= 0 ? (
+                  <View className="flex-row items-center justify-between">
+                    <View>
+                      {daysRemaining === 0 ? null : (
+                        <Text className="text-sm font-semibold uppercase tracking-widest text-white/90">
+                          {i18n.t("concertDetail.remainingLabel")}
+                        </Text>
+                      )}
 
-                    <Text className="mt-1 text-3xl font-bold text-white">
-                      {daysRemaining === 0
-                        ? i18n.t("concertDetail.today")
-                        : i18n.t(
+                      <Text className="mt-1 text-3xl font-bold text-white">
+                        {daysRemaining === 0
+                          ? i18n.t("concertDetail.today")
+                          : i18n.t(
                             daysRemaining === 1
                               ? "concertDetail.oneDayRemaining"
                               : "concertDetail.daysRemaining",
                             { count: daysRemaining },
                           )}
-                    </Text>
+                      </Text>
+                    </View>
+                    <MaterialIcons
+                      name="event-available"
+                      size={40}
+                      color="white"
+                    />
                   </View>
-                  <MaterialIcons
-                    name="event-available"
-                    size={40}
-                    color="white"
-                  />
-                </View>
-              ) : (
-                <Text className="text-base font-semibold text-white">
-                  {formatConcertTiming(concert.date)}
-                </Text>
-              )}
+                ) : (
+                  <Text className="text-base font-semibold text-white">
+                    {formatConcertTiming(concert.date)}
+                  </Text>
+                )}
+              </View>
             </View>
-          </View>
-        </ScrollView>
-      </SafeAreaView>
+          </ScrollView>
+        </SafeAreaView>
+      </ToastivaProvider>
     </Modal>
   );
 }

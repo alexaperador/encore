@@ -17,6 +17,10 @@
         "accessibilityLabelLiked": "Quitar de favoritos",
         "accessibilityLabelUnliked": "Añadir a favoritos",
         "accessibilityLabelShare": "Compartir %{title}",
+        "favoriteAdded": "Añadido a Mis conciertos",
+        "favoriteAddedDescription": "%{title} se ha guardado en tus conciertos.",
+        "favoriteRemoved": "Quitado de Mis conciertos",
+        "favoriteRemovedDescription": "%{title} se ha quitado de tus conciertos.",
         "dateNotAvailable": "Fecha no disponible",
         "timing": {
             "finishedDays": "Finalizado hace %{count} días",
@@ -59,6 +63,8 @@
         "venue": "Recinto",
         "venuePlaceholder": "Ej: Palau Sant Jordi",
         "save": "Guardar",
+        "savedTitle": "Concierto guardado",
+        "savedMessage": "%{title} se ha añadido a Mis conciertos.",
         "permissionTitle": "Permiso necesario",
         "permissionMessage": "Necesitamos acceso a tus fotos para elegir una portada.",
         "missingDataTitle": "Faltan datos",
@@ -125,7 +131,9 @@
         "disableReminder": "Desactivar recordatorios: %{reminder}",
         "reminderSwitchHint": "Elige cuándo recibir avisos de tus conciertos.",
         "reminderPreferenceTitle": "Preferencias de recordatorio",
-        "reminderPreferenceError": "Mantén al menos un plazo de aviso activo. Desactiva la campana de un concierto para dejar de recibir sus avisos."
+        "reminderPreferenceError": "Mantén al menos un plazo de aviso activo. Desactiva la campana de un concierto para dejar de recibir sus avisos.",
+        "reminderPreferenceEnabled": "Aviso activado: %{reminder}",
+        "reminderPreferenceDisabled": "Aviso desactivado: %{reminder}"
     },
     "notifications": {
         "channelName": "Recordatorios de conciertos",
@@ -175,7 +183,12 @@
         "remainingLabel": "Quedan",
         "today": "Hoy",
         "oneDayRemaining": "%{count} día",
-        "daysRemaining": "%{count} días"
+        "daysRemaining": "%{count} días",
+        "notificationSuccessTitle": "Notificación actualizada",
+        "notificationToggledOn": "Notificación activada",
+        "notificationToggledOff": "Notificación desactivada",
+        "notificationToggledDescriptionOn": "Recibirás una notificación para este concierto según tus preferencias.",
+        "notificationToggledDescriptionOff": "Ya no recibirás notificaciones para este concierto."
     },
     "settings": {
         "title": "Ajustes",
@@ -225,7 +238,7 @@
         "privacyDescription": "Tus datos se almacenan localmente en tu dispositivo.",
         "openSource": "Licencias de código abierto",
         "openSourceDescription": "Construida con herramientas de código abierto.",
-        "copyright": "© {year} Encore",
+        "copyright": "© %{year} Encore",
         "deleteData": "Eliminar todos los datos",
         "deleteDataConfirmation": "¿Estás seguro de que quieres eliminar todos los datos? Esta acción no se puede deshacer.",
         "deleteDataSuccessTitle": "Datos eliminados",

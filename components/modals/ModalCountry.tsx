@@ -4,10 +4,11 @@ import {
     setCountry,
     type CountryCode,
 } from "@/lib/country";
+import Text from "@/components/EncoreText";
 import { i18n } from "@/lib/i18n";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
-import { Modal, Pressable, Text, View } from "react-native";
+import { Modal, Pressable, View } from "react-native";
 
 export default function ModalCountry({
     isVisible,
@@ -48,7 +49,7 @@ export default function ModalCountry({
                     onPress={(event) => event.stopPropagation()}
                 >
                     <View className="mb-5 flex-row items-center justify-between">
-                        <Text className="text-2xl font-bold text-background">
+                        <Text typeface="display" className="text-2xl font-bold text-background">
                             {i18n.t("settings.changeCountry")}
                         </Text>
                         <Pressable

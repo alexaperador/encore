@@ -1,6 +1,7 @@
 import { i18n } from "@/lib/i18n";
+import Text from "@/components/EncoreText";
 import { MaterialIcons } from "@expo/vector-icons";
-import { Modal, Pressable, Text, View } from "react-native";
+import { Modal, Pressable, View } from "react-native";
 import app from "../../app.json";
 
 export default function ModalAbout({
@@ -26,7 +27,7 @@ export default function ModalAbout({
                         <View className="h-20 w-20 items-center justify-center rounded-[28px] bg-background shadow-lg">
                             <MaterialIcons name="music-note" size={42} color="#FFCD9F" />
                         </View>
-                        <Text className="mt-4 text-4xl font-bold tracking-[1px] text-background">
+                        <Text typeface="display" className="mt-4 text-4xl font-bold tracking-[1px] text-background">
                             Encore
                         </Text>
                         <Text className="mt-1 text-center text-sm text-[#A47148]">

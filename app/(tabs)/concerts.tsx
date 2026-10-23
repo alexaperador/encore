@@ -1,5 +1,6 @@
 import AddConcert from "@/components/AddConcert";
 import ConcertCard from "@/components/ConcertCard";
+import Text from "@/components/EncoreText";
 import { getConcertDateTime, getConcertDaysRemaining, type Concert } from "@/lib/concerts";
 import { getFavoriteConcerts, toggleFavoriteConcert } from "@/lib/favorites";
 import { i18n } from "@/lib/i18n";
@@ -12,13 +13,12 @@ import { useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   Pressable,
-  Text,
   View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { toastiva } from "toastiva";
 
 export default function Concerts() {
   const [favoriteConcerts, setFavoriteConcerts] = useState<Concert[]>([]);
@@ -64,25 +64,44 @@ export default function Concerts() {
       await toggleFavoriteConcert(concert);
       setFavoriteConcerts(nextFavorites);
       setNotificationIds((currentIds) => currentIds.filter((id) => id !== concert.id));
+      toastiva.info(
+        i18n.t("concertcard.favoriteRemoved"),
+        {
+          description: i18n.t("concertcard.favoriteRemovedDescription", {
+            title: concert.title,
+          }),
+        },
+      );
     } catch {
-      Alert.alert(
+      toastiva.error(
         i18n.t("alerts.updateErrorTitle"),
-        i18n.t("alerts.updateErrorMessage"),
+        { description: i18n.t("alerts.updateErrorMessage") },
       );
     }
   };
 
   const handleToggleNotification = async (concert: Concert) => {
+    const isEnabled = notificationIds.includes(concert.id);
     try {
       const nextNotificationIds = await setConcertNotificationEnabled(
         concert,
-        !notificationIds.includes(concert.id),
+        !isEnabled,
       );
       setNotificationIds(nextNotificationIds);
+      const messageKey = isEnabled
+        ? "concertDetail.notificationToggledOff"
+        : "concertDetail.notificationToggledOn";
+      const descriptionKey = isEnabled
+        ? "concertDetail.notificationToggledDescriptionOff"
+        : "concertDetail.notificationToggledDescriptionOn";
+
+      toastiva[isEnabled ? "info" : "success"](i18n.t(messageKey), {
+        description: i18n.t(descriptionKey),
+      });
     } catch {
-      Alert.alert(
+      toastiva.error(
         i18n.t("alerts.scheduleErrorTitle"),
-        i18n.t("alerts.scheduleErrorMessage"),
+        { description: i18n.t("alerts.scheduleErrorMessage") },
       );
     }
   };
@@ -147,7 +166,7 @@ export default function Concerts() {
   const listHeader = (
     <>
       <View className="flex-row items-center justify-between gap-3">
-        <Text className="flex-1 text-5xl font-bold text-background">{i18n.t("concerts.title")}</Text>
+        <Text typeface="display" className="flex-1 text-5xl font-bold text-background">{i18n.t("concerts.title")}</Text>
       </View>
       <Text className="text-xl text-[#A47148]">
         {i18n.t("concerts.subtitle")}

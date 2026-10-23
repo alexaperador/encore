@@ -1,6 +1,7 @@
 import { i18n } from "@/lib/i18n";
+import Text from "@/components/EncoreText";
 import { MaterialIcons } from "@expo/vector-icons";
-import { Modal, TouchableOpacity, Text, View } from "react-native";
+import { Modal, TouchableOpacity, View } from "react-native";
 
 export default function ModalConfirm({
     isVisible,
