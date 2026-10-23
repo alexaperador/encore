@@ -7,6 +7,16 @@ import type { Concert } from "./concerts";
 
 const FAVORITES_KEY = "@encore/favorite-concerts";
 let favoritesQueue: Promise<void> = Promise.resolve();
+const favoriteListeners = new Set<() => void>();
+
+export function subscribeToFavorites(listener: () => void): () => void {
+  favoriteListeners.add(listener);
+  return () => favoriteListeners.delete(listener);
+}
+
+function notifyFavoritesChanged() {
+  favoriteListeners.forEach((listener) => listener());
+}
 
 function enqueueFavoriteOperation<T>(operation: () => Promise<T>): Promise<T> {
   const result = favoritesQueue.then(operation, operation);
@@ -61,6 +71,7 @@ export function toggleFavoriteConcert(
       : [...favorites, concert];
 
     await AsyncStorage.setItem(FAVORITES_KEY, JSON.stringify(nextFavorites));
+    notifyFavoritesChanged();
     return nextFavorites.map((favorite) => favorite.id);
   });
 }
@@ -72,5 +83,6 @@ export function clearEncoreData(): Promise<void> {
     const keys = await AsyncStorage.getAllKeys();
     const encoreKeys = keys.filter((key) => key.startsWith("@encore/"));
     if (encoreKeys.length > 0) await AsyncStorage.multiRemove(encoreKeys);
+    notifyFavoritesChanged();
   });
 }

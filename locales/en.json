@@ -12,7 +12,8 @@
         "explore": "Explore",
         "concerts": "Concerts",
         "alerts": "Alerts",
-        "settings": "Settings"
+        "settings": "Settings",
+        "addConcert": "Add concert"
     },
     "concertcard": {
         "accessibilityLabelLiked": "Remove from favorites",

@@ -2,7 +2,11 @@ import AddConcert from "@/components/AddConcert";
 import ConcertCard from "@/components/ConcertCard";
 import Text from "@/components/EncoreText";
 import { getConcertDateTime, getConcertDaysRemaining, type Concert } from "@/lib/concerts";
-import { getFavoriteConcerts, toggleFavoriteConcert } from "@/lib/favorites";
+import {
+  getFavoriteConcerts,
+  subscribeToFavorites,
+  toggleFavoriteConcert,
+} from "@/lib/favorites";
 import { i18n } from "@/lib/i18n";
 import {
   getNotificationConcertIds,
@@ -10,7 +14,7 @@ import {
 } from "@/lib/notifications";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -31,6 +35,18 @@ export default function Concerts() {
     setFavoriteConcerts(favorites);
     setIsFavoritesLoading(false);
   }, []);
+
+  useEffect(() => {
+    let isActive = true;
+    const unsubscribe = subscribeToFavorites(() => {
+      void refreshFavorites(() => isActive);
+    });
+
+    return () => {
+      isActive = false;
+      unsubscribe();
+    };
+  }, [refreshFavorites]);
 
   const categories = [
     { key: "upcoming", label: i18n.t("concerts.categories.upcoming"), icon: "event" },
@@ -159,7 +175,7 @@ export default function Concerts() {
           <Text className="text-[#FFCD9F]">{i18n.t("concerts.addReminder")}</Text>
           <MaterialIcons name="add" size={32} color="#FFCD9F" />
         </View>
-      } onConcertAdded={refreshFavorites} />
+      } />
     </View>
   );
 
@@ -208,7 +224,7 @@ export default function Concerts() {
           <Text className="text-[#FFCD9F]">{i18n.t("concerts.addReminder")}</Text>
           <MaterialIcons name="add" size={32} color="#FFCD9F" />
         </View>
-      } onConcertAdded={refreshFavorites} />}
+      } />}
     </>
   );
 

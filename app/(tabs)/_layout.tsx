@@ -153,8 +153,16 @@ function FloatingTabBar({ state, descriptors, navigation }: TabBarProps) {
           />
         ))}
       </View>
-      <AddConcert onConcertAdded={() => { }} children={
-        <MaterialIcons name="add" size={24} color="white" style={styles.bar} />
+      <AddConcert children={
+        <MaterialIcons
+          name="add"
+          size={24}
+          color={COLORS.inactiveIcon}
+          className="rounded-2xl"
+          style={[styles.bar, { padding: 20 }]}
+          accessibilityLabel={i18n.t("navbar.addConcert")}
+          accessibilityRole="button"
+        />
       } />
     </View>
   );

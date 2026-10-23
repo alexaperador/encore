@@ -11,7 +11,8 @@
         "explore": "Explorar",
         "concerts": "Conciertos",
         "alerts": "Alertas",
-        "settings": "Ajustes"
+        "settings": "Ajustes",
+        "addConcert": "Añadir concierto"
     },
     "concertcard": {
         "accessibilityLabelLiked": "Quitar de favoritos",
