@@ -4,7 +4,7 @@
     "slug": "encore",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/encore.jpg",
+    "icon": "./assets/images/encore.png",
     "scheme": "encore",
     "userInterfaceStyle": "automatic",
     "ios": {
@@ -17,9 +17,9 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/encore.jpg",
-        "backgroundImage": "./assets/images/encore.jpg",
-        "monochromeImage": "./assets/images/encore-monochrome.jpg"
+        "foregroundImage": "./assets/images/encore.png",
+        "backgroundImage": "./assets/images/encore.png",
+        "monochromeImage": "./assets/images/encore-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.aaperadors.encore",
@@ -31,7 +31,7 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/encore.jpg"
+      "favicon": "./assets/images/encore.png"
     },
     "plugins": [
       "expo-router",
@@ -50,12 +50,13 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/encore.jpg",
+          "image": "./assets/images/encore.png",
           "resizeMode": "contain",
           "backgroundColor": "#E6F4FE"
         }
       ],
-      "expo-widgets"
+      "expo-widgets",
+      "expo-localization"
     ],
     "experiments": {
       "typedRoutes": true

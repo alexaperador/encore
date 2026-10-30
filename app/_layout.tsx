@@ -11,6 +11,7 @@ import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ToastivaProvider } from "toastiva";
+import { Platform } from "react-native";
 
 void SplashScreen.preventAutoHideAsync().catch(() => undefined);
 
@@ -53,6 +54,8 @@ export default function RootLayout() {
     });
   }, []);
   useEffect(() => {
+    if (Platform.OS === "web") return;
+
     let isActive = true;
     let lastHandledKey = "";
     let lastHandledAt = 0;
